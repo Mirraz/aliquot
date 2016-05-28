@@ -575,6 +575,10 @@ void aliquot_inverse_terminate() {
 }
 
 void aliquot_inverse(num_type req_aliquot_sum) {
+	if (req_aliquot_sum <= 1) {
+		fprintf(stderr, "Wrong input: " PRI_NUM_TYPE "\n", req_aliquot_sum);
+		exit(EXIT_FAILURE);
+	}
 	exp_calc(req_aliquot_sum);
 }
 
