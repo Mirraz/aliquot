@@ -37,7 +37,7 @@ inverse: $(BUILD_DIR)/inverse.o
 	$(LD) -o $@ $^ $(LDFLAGS)
 	$(STRIP) $@
 
-$(BUILD_DIR)/inverse.o: $(SRC_DIR)/inverse.c Makefile
+$(BUILD_DIR)/inverse.o: $(SRC_DIR)/inverse.c $(SRC_DIR)/typedefs.h Makefile
 	$(CC) -o $@ $< -c $(CFLAGS)
 
 clean:
