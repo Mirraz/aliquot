@@ -7,6 +7,7 @@
 #include <fenv.h>
 
 #include "typedefs.h"
+#include "primes.h"
 
 #define dprintf(...) fprintf(stderr, __VA_ARGS__)
 #define assert_may_overflow assert
@@ -30,6 +31,9 @@ typedef struct {
 	prime_status_enum prime_status;
 	bool is_prime_in_list;
 } calc_struct;
+
+num_type *primes;
+size_t primes_count;
 
 void calc_list_dprint(calc_struct calc_list[], pow_idx_type pow_count) {
 	pow_idx_type i;
@@ -106,35 +110,6 @@ num_type calc_pow_sigma__old(num_type base, exp_type exp) {
 		return pow + sum_suffix;
 	}
 }
-
-size_t fill_primes(num_type primes[], size_t primes_size, num_type max_num) {
-	if (primes_size == 0 || max_num < 2) return 0;
-	int default_rounding_direction = fegetround();
-	fesetround(0);
-	primes[0] = 2;
-	size_t primes_count = 1;
-	num_type n = 3;
-	num_type n_sqrt = 1;
-	while (primes_count < primes_size && n <= max_num) {
-		bool is_prime = true;
-		for (size_t i=0; primes[i]<=n_sqrt; ++i) {
-			if (!(n % primes[i])) {
-				is_prime = false;
-				break;
-			}
-		}
-		assert(primes_count < primes_size);
-		if (is_prime) primes[primes_count++] = n;
-		n += 2;
-		n_sqrt = round_sqrt(n);
-	}
-	fesetround(default_rounding_direction);
-	return primes_count;
-}
-
-#define primes_size (1024*1024)
-num_type primes[primes_size];
-size_t primes_count;
 
 bool is_big_odd_number_prime(num_type n) {
 	assert(n > primes[primes_count-1]);
@@ -574,19 +549,19 @@ void exp_calc(num_type req_aliquot_sum) {
 // --- main {
 
 int default_rounding_direction;
+primes_array_struct *primes_array;
 
-void aliquot_inverse_init(size_t in_count) {
-	assert(in_count >= MAX_POW_COUNT);
-	assert(in_count <= primes_size);
-	primes_count = fill_primes(primes, in_count, UINT64_MAX);
-	assert(primes_count == in_count);
-	
+void aliquot_inverse_init() {
+	primes_array = primes_construct();
+	primes = primes_get_array(primes_array);
+	primes_count = primes_get_count(primes_array);
 	default_rounding_direction = fegetround();
 	fesetround(0);
 }
 
 void aliquot_inverse_terminate() {
 	fesetround(default_rounding_direction);
+	primes_destruct(primes_array);
 }
 
 void aliquot_inverse(num_type req_aliquot_sum) {
@@ -614,8 +589,7 @@ void aliquot_inverse_cb(calc_struct calc_list[], pow_idx_type pow_count) {
 }
 
 void run() {
-	aliquot_inverse_init(1024*32);
-	dprintf("primes are filled\n");
+	aliquot_inverse_init();
 	
 	num_type req_aliquot_sum;
 	int scanf_res = scanf(SCN_NUM_TYPE, &req_aliquot_sum);
