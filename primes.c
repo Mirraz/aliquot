@@ -1,65 +1,49 @@
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <stddef.h>
-#include <stdbool.h>
-#include <math.h>
-#include <fenv.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
 
-#include "typedefs.h"
 #include "primes.h"
 
 struct primes_array_struct_ {
-	num_type *primes;
+	prime_type *primes;
 	size_t count;
 };
 
-primes_array_struct default_primes_array;
-
-#define primes_buffer_size (1024*1024)
-num_type primes_buffer[primes_buffer_size];
-
-static size_t fill_primes(num_type primes[], size_t primes_size, num_type max_num) {
-	if (primes_size == 0 || max_num < 2) return 0;
-	int default_rounding_direction = fegetround();
-	fesetround(0);
-	primes[0] = 2;
-	size_t primes_count = 1;
-	num_type n = 3;
-	num_type n_sqrt = 1;
-	while (primes_count < primes_size && n <= max_num) {
-		bool is_prime = true;
-		for (size_t i=0; primes[i]<=n_sqrt; ++i) {
-			if (!(n % primes[i])) {
-				is_prime = false;
-				break;
-			}
-		}
-		assert(primes_count < primes_size);
-		if (is_prime) primes[primes_count++] = n;
-		n += 2;
-		n_sqrt = round_sqrt(n);
-	}
-	fesetround(default_rounding_direction);
-	return primes_count;
-}
-
 primes_array_struct *primes_construct() {
-	size_t in_count = 1024*32; // TODO
+	const char *primes_filename = "primes32.bin";
 	
-	assert(in_count >= MAX_POW_COUNT);
-	assert(in_count <= primes_buffer_size);
-	size_t primes_count = fill_primes(primes_buffer, in_count, UINT64_MAX);
-	assert(primes_count == in_count);
+	primes_array_struct *primes_array = malloc(sizeof(primes_array_struct));
+	if (primes_array == NULL) {perror("malloc"); exit(EXIT_FAILURE);}
 	
-	default_primes_array.primes = primes_buffer;
-	default_primes_array.count = primes_count;
-	return &default_primes_array;
+	int fd = open(primes_filename, O_RDONLY);
+	if (fd < 0) {perror("open"); exit(EXIT_FAILURE);}
+	struct stat file_stat;
+	if (fstat(fd, &file_stat)) {perror("fstat"); exit(EXIT_FAILURE);}
+	off_t file_size = file_stat.st_size;
+	if (file_size == 0 || file_size % sizeof(prime_type) != 0) {fprintf(stderr, "Wrong file size\n"); exit(EXIT_FAILURE);}
+	void *data = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	if (close(fd)) {perror("close"); exit(EXIT_FAILURE);}
+	
+	primes_array->primes = (prime_type *)data;
+	primes_array->count  = file_size / sizeof(prime_type);
+	return primes_array;
 }
 
 void primes_destruct(primes_array_struct *primes_array) {
-	(void)primes_array;
+	if (munmap(primes_array->primes, primes_array->count*sizeof(prime_type))) {
+		perror("munmap");
+		exit(EXIT_FAILURE);
+	}
+	free(primes_array);
 }
 
-num_type *primes_get_array(primes_array_struct *primes_array) {
+prime_type *primes_get_array(primes_array_struct *primes_array) {
 	return primes_array->primes;
 }
 

@@ -1,5 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <memory.h>
@@ -32,8 +34,11 @@ typedef struct {
 	bool is_prime_in_list;
 } calc_struct;
 
-num_type *primes;
+const num_type first_primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53};
+
+prime_type *primes;
 size_t primes_count;
+num_type primes_max;
 
 void calc_list_dprint(calc_struct calc_list[], pow_idx_type pow_count) {
 	pow_idx_type i;
@@ -112,7 +117,7 @@ num_type calc_pow_sigma__old(num_type base, exp_type exp) {
 }
 
 bool is_big_odd_number_prime(num_type n) {
-	assert(n > primes[primes_count-1]);
+	assert(n > primes_max);
 	assert(n & 1);
 	num_type n_sqrt = round_sqrt(n);
 	num_type p = 3;
@@ -132,7 +137,7 @@ bool is_prime(num_type n) {
 	assert(n > 1);
 	assert(primes_count > 0);
 	if (!(n & 1)) return n == 2;
-	if (n <= primes[primes_count-1]) {
+	if (n <= primes_max) {
 		size_t left_idx = 0, right_idx = primes_count-1, mid_idx;
 		do {
 			mid_idx = left_idx + (right_idx - left_idx) / 2;
@@ -309,7 +314,7 @@ bool is_prime_calc(calc_struct *cur_prime_calc) {
 	if (cur_prime_calc->prime_status == PRIME_STATUS_PRIME) return true;
 	assert(cur_prime_calc->prime_status == PRIME_STATUS_UNKNOWN);
 	assert(!cur_prime_calc->is_prime_in_list);
-	assert(cur_prime_calc->prime > primes[primes_count-1]);
+	assert(cur_prime_calc->prime > primes_max);
 	bool is_prime_res = is_big_odd_number_prime(cur_prime_calc->prime);
 	cur_prime_calc->prime_status = is_prime_res ? PRIME_STATUS_PRIME : PRIME_STATUS_NOT_PRIME;
 	return is_prime_res;
@@ -516,7 +521,7 @@ void exp_calc(num_type req_aliquot_sum) {
 	assert(req_aliquot_sum > 1);
 	
 	static calc_struct exp_calc_list[MAX_POW_COUNT];
-	for (pow_idx_type i=0; i<MAX_POW_COUNT; ++i) exp_calc_list[i].prime = primes[i];
+	for (pow_idx_type i=0; i<MAX_POW_COUNT; ++i) exp_calc_list[i].prime = first_primes[i];
 	
 	for (pow_idx_type pow_count=1;; ++pow_count) {
 //dprintf("[exp_calc][1] pow_count=" PRI_POW_IDX_TYPE "\n", pow_count);
@@ -552,9 +557,14 @@ int default_rounding_direction;
 primes_array_struct *primes_array;
 
 void aliquot_inverse_init() {
+	assert(sizeof(first_primes)/sizeof(first_primes[0]) >= MAX_POW_COUNT);
+
 	primes_array = primes_construct();
 	primes = primes_get_array(primes_array);
 	primes_count = primes_get_count(primes_array);
+	assert(primes_count > 0);
+	primes_max = primes[primes_count-1];
+	
 	default_rounding_direction = fegetround();
 	fesetround(0);
 }

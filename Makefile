@@ -40,7 +40,7 @@ inverse: $(BUILD_DIR)/inverse.o $(BUILD_DIR)/primes.o
 $(BUILD_DIR)/inverse.o: $(SRC_DIR)/inverse.c $(SRC_DIR)/primes.h $(SRC_DIR)/typedefs.h Makefile
 	$(CC) -o $@ $< -c $(CFLAGS)
 
-$(BUILD_DIR)/primes.o: $(SRC_DIR)/primes.c $(SRC_DIR)/primes.h $(SRC_DIR)/typedefs.h Makefile
+$(BUILD_DIR)/primes.o: $(SRC_DIR)/primes.c $(SRC_DIR)/primes.h Makefile
 	$(CC) -o $@ $< -c $(CFLAGS)
 
 clean:
