@@ -185,6 +185,7 @@ num_type find_base_for_pow(exp_type exp, num_type req_aliquot_sum) {
 	return 0;
 }
 
+// exp <= 2
 // returns: 0 if not found, value>1 if found
 num_type calc_last_base(num_type prefix_sigma, num_type prefix_aliquot, exp_type exp, num_type req_aliquot_sum) {
 	assert(exp <= 2);
@@ -333,6 +334,10 @@ num_type prime_calc_recalc(calc_struct prime_calc_list[], pow_idx_type idx) {
 	assert(idx == 0 || cur_prime_calc->pow <= NUM_TYPE_MAX / prime_calc_list[idx-1].prefix_mul);
 	cur_prime_calc->prefix_mul =
 		(idx > 0 ? prime_calc_list[idx-1].prefix_mul*cur_prime_calc->pow : cur_prime_calc->pow);
+	// XXX req_aliquot_sum < 8589934590 = 2^33-2
+	// for sum = 8589934590:
+	//     prime_calc_list = [.0 = {.exp=1, .prime=4294967295}, .1 = {.exp=1, prime=4294967297}]
+	//     idx = 1, cur_prime_calc->pow_sigma = 4294967298, prime_calc_list[idx-1].prefix_sigma = 4294967296
 	assert(idx == 0 || cur_prime_calc->pow_sigma <= NUM_TYPE_MAX / prime_calc_list[idx-1].prefix_sigma);
 	cur_prime_calc->prefix_sigma =
 		(idx > 0 ? prime_calc_list[idx-1].prefix_sigma*cur_prime_calc->pow_sigma : cur_prime_calc->pow_sigma);
@@ -589,12 +594,14 @@ void aliquot_inverse(num_type req_aliquot_sum) {
 num_type req_aliquot_sum_saved;
 
 void aliquot_inverse_cb(calc_struct calc_list[], pow_idx_type pow_count) {
-//dprintf("[aliquot_inverse_cb][1]");
-//for (pow_idx_type i=0; i<pow_count; ++i) dprintf(PRI_NUM_TYPE "^" PRI_EXP_TYPE " ", calc_list[i].prime, calc_list[i].exp);
-//dprintf("\n");
+	//for (pow_idx_type i=0; i<pow_count; ++i)
+	//	printf(PRI_NUM_TYPE "^" PRI_EXP_TYPE " ", calc_list[i].prime, calc_list[i].exp);
+	//printf("\n");
 	
 	num_type value = 1;
 	for (pow_idx_type i=0; i<pow_count; ++i) {
+		// XXX req_aliquot_sum < 4294967312 = 2^32+16
+		// for sum = 4294967312: n = 4294967311^2 > 2^64
 		num_type pow = calc_pow(calc_list[i].prime, calc_list[i].exp);
 		assert(value <= NUM_TYPE_MAX / pow);
 		value *= pow;
