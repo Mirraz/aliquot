@@ -1,9 +1,8 @@
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
+#include <stdlib.h>		// exit, EXIT_FAILURE
+#include <stddef.h>		// size_t
 #include <stdbool.h>
-#include <stdint.h>
 #include <memory.h>
 #include <math.h>
 #include <fenv.h>
