@@ -531,6 +531,14 @@ void aliquot_inverse(num_type req_aliquot_sum) {
 		fprintf(stderr, "Wrong input: " PRI_NUM_TYPE "\n", req_aliquot_sum);
 		exit(EXIT_FAILURE);
 	}
+	// for num_type === uint64_t
+	if (
+		( (req_aliquot_sum & 1) && (req_aliquot_sum >  8589934589ull)) ||
+		(!(req_aliquot_sum & 1) && (req_aliquot_sum >= 9126805520ull))
+	) {
+		fprintf(stderr, "Input number is too large\n");
+		exit(EXIT_FAILURE);
+	}
 	exp_calc(req_aliquot_sum);
 }
 
