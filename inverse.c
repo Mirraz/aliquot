@@ -387,9 +387,6 @@ bool prime_calc_next(calc_struct prime_calc_list[], pow_idx_type pow_count, num_
 }
 
 void prime_calc(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
-//dprintf("[prime_calc][1]");
-//for (pow_idx_type i=0; i<pow_count; ++i) dprintf(PRI_EXP_TYPE " ", exp_calc_list[i].exp);
-//dprintf("\n");
 	static calc_struct prime_calc_list[MAX_POW_COUNT];
 	memcpy(prime_calc_list, exp_calc_list, sizeof(exp_calc_list[0])*pow_count);
 	
@@ -412,9 +409,6 @@ void prime_calc(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type re
 #ifndef NDEBUG
 		for (pow_idx_type i=0; i<pow_count-1; ++i) assert(prime_calc_list[i].prime_status == PRIME_STATUS_PRIME);
 #endif
-//dprintf("[prime_calc][1] {\n");
-//calc_list_dprint(prime_calc_list, pow_count);
-//dprintf("prime_calc][1] }\n");
 		find_last_prime_calc(prime_calc_list, pow_count, req_aliquot_sum);
 		is_end_reached = prime_calc_next(prime_calc_list, pow_count, req_aliquot_sum);
 	} while (!is_end_reached);
@@ -477,36 +471,23 @@ num_type exp_calc_fill_any_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
 
 // returns: false - next is calculated, true - end is reached
 bool exp_calc_next(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
-//dprintf("[exp_calc_next][1] req_aliquot_sum = " PRI_NUM_TYPE "\n", req_aliquot_sum);
-//dprintf("[exp_calc_next][2] pow_count = " PRI_POW_IDX_TYPE "\n", pow_count);
 	pow_idx_type inc_idx = pow_count-1;
 	while (true) {
 		while (true) {
-//dprintf("[exp_calc_next][3] inc_idx=" PRI_POW_IDX_TYPE "\n", inc_idx);
 			num_type prefix_aliquot_sum = exp_calc_inc_exp(exp_calc_list, inc_idx);
-//dprintf("[exp_calc_next][4] {\n");
-//calc_list_dprint(exp_calc_list, inc_idx+1);
-//dprintf("[exp_calc_next][4] }\n");
-//dprintf("[exp_calc_next][5] prefix_aliquot_sum=" PRI_NUM_TYPE "\n", prefix_aliquot_sum);
 			if (prefix_aliquot_sum < req_aliquot_sum) {
 				break;
 			} else if (prefix_aliquot_sum == req_aliquot_sum && inc_idx == pow_count-1) {
 				aliquot_inverse_cb(exp_calc_list, pow_count);
 			}
 			if (inc_idx == 0) {
-//dprintf("[exp_calc_next]return true[1]\n");
 				return true;
 			}
 			--inc_idx;
 		}
 		pow_idx_type fill_idx;
 		for (fill_idx=inc_idx+1; fill_idx<pow_count; ++fill_idx) {
-//dprintf("[exp_calc_next][6] fill_idx=" PRI_POW_IDX_TYPE "\n", fill_idx);
 			num_type prefix_aliquot_sum = exp_calc_fill_exp(exp_calc_list, fill_idx);
-//dprintf("[exp_calc_next][7] {\n");
-//calc_list_dprint(exp_calc_list, fill_idx+1);
-//dprintf("[exp_calc_next][7] }\n");
-//dprintf("[exp_calc_next][8] prefix_aliquot_sum=" PRI_NUM_TYPE "\n", prefix_aliquot_sum);
 			if (prefix_aliquot_sum == req_aliquot_sum) {
 				if (fill_idx == pow_count-1) aliquot_inverse_cb(exp_calc_list, pow_count);
 				break;
@@ -514,16 +495,12 @@ bool exp_calc_next(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type
 				break;
 			}
 		}
-//dprintf("[exp_calc_next][9] fill_idx=" PRI_POW_IDX_TYPE "\n", fill_idx);
 		if (fill_idx == pow_count) break;
 		if (inc_idx == 0) {
-//dprintf("[exp_calc_next]return true[2]\n");
 			return true;
 		}
-//dprintf("[exp_calc_next][10]\n");
 		--inc_idx;
 	}
-//dprintf("[exp_calc_next]return false\n");
 	return false;
 }
 
@@ -534,14 +511,9 @@ void exp_calc(num_type req_aliquot_sum) {
 	for (pow_idx_type i=0; i<MAX_POW_COUNT; ++i) exp_calc_list[i].prime = first_primes[i];
 	
 	for (pow_idx_type pow_count=1;; ++pow_count) {
-//dprintf("[exp_calc][1] pow_count=" PRI_POW_IDX_TYPE "\n", pow_count);
 		num_type prefix_aliquot_sum;
 		for (pow_idx_type fill_idx=0; fill_idx<pow_count; ++fill_idx) {
 			prefix_aliquot_sum = exp_calc_fill_any_exp(exp_calc_list, fill_idx);
-//dprintf("[exp_calc][2] {\n");
-//calc_list_dprint(exp_calc_list, fill_idx+1);
-//dprintf("[exp_calc][2] }\n");
-//dprintf("[exp_calc][3] prefix_aliquot_sum=" PRI_NUM_TYPE "\n", prefix_aliquot_sum);
 			assert(fill_idx == pow_count-1 || prefix_aliquot_sum < req_aliquot_sum);
 		}
 		if (prefix_aliquot_sum == req_aliquot_sum) aliquot_inverse_cb(exp_calc_list, pow_count);
