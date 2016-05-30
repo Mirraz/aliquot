@@ -61,6 +61,8 @@ void aliquot_inverse_cb(calc_struct calc_list[], pow_idx_type pow_count);
 num_type calc_pow(num_type base, exp_type exp) {
 	assert(exp > 0);
 	assert(base > 1);
+	if (exp == 1) return base;
+	// here simple sequential multiplication faster than fast exponentiation by squaring
 	num_type result = 1;
 	for (exp_type i=0; i<exp; ++i) {
 		assert(result <= NUM_TYPE_MAX / base);
@@ -73,6 +75,10 @@ num_type calc_pow(num_type base, exp_type exp) {
 num_type calc_pow_sigma(num_type base, exp_type exp) {
 	assert(exp > 0);
 	assert(base > 1);
+	if (exp == 1) {
+		assert(base < NUM_TYPE_MAX);
+		return base + 1;
+	}
 	num_type result = 1;
 	for (exp_type i=0; i<exp; ++i) {
 		assert(result <= NUM_TYPE_MAX / base);
@@ -81,40 +87,6 @@ num_type calc_pow_sigma(num_type base, exp_type exp) {
 		++result;
 	}
 	return result;
-}
-
-// TODO: test, which is faster
-num_type calc_pow__old(num_type base, exp_type exp) {
-	num_type result = 1;
-	exp_type mask = EXP_TYPE_MAX_MASK;
-	while (mask != 0 && !(exp & mask)) mask >>= 1;
-	while (mask > 0) {
-		assert(result <= NUM_TYPE_MAX / result);
-		result *= result;
-		if (exp & mask) {
-			assert(result <= NUM_TYPE_MAX / base);
-			result *= base;
-		}
-		mask >>= 1;
-	}
-	return result;
-}
-
-// TODO: test, which is faster
-num_type calc_pow_sigma__old(num_type base, exp_type exp) {
-	assert(exp > 0);
-	assert(exp < EXP_TYPE_MAX);
-	assert(base > 1);
-	if      (exp == 1) return base + 1;
-	else if (exp == 2) return (base + 1) * base + 1;
-	else if (exp == 3) return ((base + 1) * base + 1) * base + 1;
-	else {
-		// preveinting premature overflow
-		num_type pow = calc_pow(base, exp);
-		num_type sum_suffix = (pow - 1) / (base - 1);
-		assert(pow <= NUM_TYPE_MAX - sum_suffix);
-		return pow + sum_suffix;
-	}
 }
 
 bool is_big_odd_number_prime(num_type n) {
