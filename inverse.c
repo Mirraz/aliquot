@@ -594,8 +594,6 @@ void aliquot_inverse(num_type req_aliquot_sum) {
 
 //==============================
 
-num_type req_aliquot_sum_saved;
-
 void aliquot_inverse_cb(calc_struct calc_list[], pow_idx_type pow_count) {
 	//for (pow_idx_type i=0; i<pow_count; ++i)
 	//	printf(PRI_NUM_TYPE "^" PRI_EXP_TYPE " ", calc_list[i].prime, calc_list[i].exp);
@@ -609,7 +607,7 @@ void aliquot_inverse_cb(calc_struct calc_list[], pow_idx_type pow_count) {
 		assert(value <= NUM_TYPE_MAX / pow);
 		value *= pow;
 	}
-	printf(PRI_NUM_TYPE "\t" PRI_NUM_TYPE "\n", req_aliquot_sum_saved, value);
+	printf(PRI_NUM_TYPE "\n", value);
 }
 
 void run() {
@@ -618,7 +616,6 @@ void run() {
 	num_type req_aliquot_sum;
 	int scanf_res = scanf(SCN_NUM_TYPE, &req_aliquot_sum);
 	assert(scanf_res == 1);
-	req_aliquot_sum_saved = req_aliquot_sum;
 	aliquot_inverse(req_aliquot_sum);
 	
 	aliquot_inverse_terminate();
