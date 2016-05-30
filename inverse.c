@@ -40,6 +40,7 @@ prime_type *primes;
 size_t primes_count;
 num_type primes_max;
 
+#ifndef NDEBUG
 void calc_list_dprint(calc_struct calc_list[], pow_idx_type pow_count) {
 	pow_idx_type i;
 	dprintf("exp:              "); for (i=0; i<pow_count; ++i) dprintf(PRI_EXP_TYPE "\t", calc_list[i].exp         ); dprintf("\n");
@@ -53,6 +54,7 @@ void calc_list_dprint(calc_struct calc_list[], pow_idx_type pow_count) {
 	dprintf("prime_idx:        "); for (i=0; i<pow_count; ++i) dprintf("%zu" "\t", calc_list[i].prime_idx   ); dprintf("\n");
 	dprintf("prime_status:     "); for (i=0; i<pow_count; ++i) dprintf( "%u" "\t", calc_list[i].prime_status); dprintf("\n");
 }
+#endif
 
 void aliquot_inverse_cb(calc_struct calc_list[], pow_idx_type pow_count);
 
