@@ -187,6 +187,7 @@ num_type calc_last_base(num_type prefix_sigma, num_type prefix_aliquot, exp_type
 		p_numerator >>= 1;
 	}
 	num_type p_denominator = prefix_aliquot;
+	assert(p_denominator <= NUM_TYPE_MAX / 2);
 	assert(p_numerator >= 2*p_denominator);
 	if (p_numerator % p_denominator) return 0;
 	return p_numerator / p_denominator;
@@ -277,6 +278,7 @@ void next_maybe_prime_calc(const calc_struct *in_prime_calc, calc_struct *out_pr
 		out_prime_calc->is_prime_in_list = true;
 		out_prime_calc->prime_status = PRIME_STATUS_PRIME;
 	} else {
+		assert(in_prime_calc->prime <= NUM_TYPE_MAX - 2);
 		out_prime_calc->prime = in_prime_calc->prime + 2;
 		out_prime_calc->is_prime_in_list = false;
 		out_prime_calc->prime_status = PRIME_STATUS_UNKNOWN;
@@ -387,8 +389,8 @@ void prime_calc(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type re
 
 num_type exp_calc_inc_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
 	calc_struct *cur_exp_calc = &(exp_calc_list[idx]);
+	assert(cur_exp_calc->exp < MAX_EXP);
 	++cur_exp_calc->exp;
-	assert(cur_exp_calc->exp <= MAX_EXP);
 	assert(cur_exp_calc->prefix_mul <= NUM_TYPE_MAX / cur_exp_calc->prime);
 	cur_exp_calc->prefix_mul *= cur_exp_calc->prime;
 	cur_exp_calc->pow *= cur_exp_calc->prime;
