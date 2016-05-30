@@ -294,26 +294,23 @@ bool is_prime_calc(calc_struct *cur_prime_calc) {
 	return is_prime_res;
 }
 
-// TODO
-void calc_pow_and_pow_sigma(num_type prime, exp_type exp, num_type *p_pow, num_type *p_pow_sigma) {
-	*p_pow       = calc_pow(prime, exp);
-	*p_pow_sigma = calc_pow_sigma(prime, exp);
-}
-
 num_type prime_calc_recalc(calc_struct prime_calc_list[], pow_idx_type idx) {
 	calc_struct *cur_prime_calc = &(prime_calc_list[idx]);
-	calc_pow_and_pow_sigma(cur_prime_calc->prime, cur_prime_calc->exp,
-		&(cur_prime_calc->pow), &(cur_prime_calc->pow_sigma));
-	assert(idx == 0 || cur_prime_calc->pow <= NUM_TYPE_MAX / prime_calc_list[idx-1].prefix_mul);
-	cur_prime_calc->prefix_mul =
-		(idx > 0 ? prime_calc_list[idx-1].prefix_mul*cur_prime_calc->pow : cur_prime_calc->pow);
-	// XXX req_aliquot_sum < 8589934590 = 2^33-2
-	// for sum = 8589934590:
-	//     prime_calc_list = [.0 = {.exp=1, .prime=4294967295}, .1 = {.exp=1, prime=4294967297}]
-	//     idx = 1, cur_prime_calc->pow_sigma = 4294967298, prime_calc_list[idx-1].prefix_sigma = 4294967296
-	assert(idx == 0 || cur_prime_calc->pow_sigma <= NUM_TYPE_MAX / prime_calc_list[idx-1].prefix_sigma);
-	cur_prime_calc->prefix_sigma =
-		(idx > 0 ? prime_calc_list[idx-1].prefix_sigma*cur_prime_calc->pow_sigma : cur_prime_calc->pow_sigma);
+	cur_prime_calc->pow       = calc_pow      (cur_prime_calc->prime, cur_prime_calc->exp);
+	cur_prime_calc->pow_sigma = calc_pow_sigma(cur_prime_calc->prime, cur_prime_calc->exp);
+	if (idx != 0) {
+		assert(cur_prime_calc->pow <= NUM_TYPE_MAX / prime_calc_list[idx-1].prefix_mul);
+		cur_prime_calc->prefix_mul = prime_calc_list[idx-1].prefix_mul * cur_prime_calc->pow;
+		// XXX req_aliquot_sum < 8589934590 = 2^33-2
+		// for sum = 8589934590:
+		//     prime_calc_list = [.0 = {.exp=1, .prime=4294967295}, .1 = {.exp=1, prime=4294967297}]
+		//     idx = 1, cur_prime_calc->pow_sigma = 4294967298, prime_calc_list[idx-1].prefix_sigma = 4294967296
+		assert(cur_prime_calc->pow_sigma <= NUM_TYPE_MAX / prime_calc_list[idx-1].prefix_sigma);
+		cur_prime_calc->prefix_sigma = prime_calc_list[idx-1].prefix_sigma * cur_prime_calc->pow_sigma;
+	} else {
+		cur_prime_calc->prefix_mul = cur_prime_calc->pow;
+		cur_prime_calc->prefix_sigma = cur_prime_calc->pow_sigma;
+	}
 	assert(cur_prime_calc->prefix_sigma > cur_prime_calc->prefix_mul);
 	return cur_prime_calc->prefix_sigma - cur_prime_calc->prefix_mul;
 }
