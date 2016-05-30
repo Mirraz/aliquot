@@ -391,7 +391,10 @@ void prime_calc(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type re
 	static calc_struct prime_calc_list[MAX_POW_COUNT];
 	memcpy(prime_calc_list, exp_calc_list, sizeof(exp_calc_list[0])*pow_count);
 	
-	if (pow_count == 1) {
+	if (
+		(pow_count == 1) ||
+		(pow_count == 2 && prime_calc_list[0].exp == 1 && prime_calc_list[1].exp == 1 && !(req_aliquot_sum & 1))
+	) {
 		find_last_prime_calc(prime_calc_list, pow_count, req_aliquot_sum);
 		return;
 	}
