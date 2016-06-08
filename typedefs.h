@@ -26,6 +26,7 @@ typedef uint_fast8_t pow_idx_type;
 
 // num_type x
 #define round_sqrt(x) llrint(sqrt((double)(x)))
+#define floor_log2(x) (sizeof(num_type)*8 - __builtin_clzll(x) - 1)
 
 #endif/*TYPEDEFS_H*/
 

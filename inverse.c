@@ -138,16 +138,38 @@ num_type calc_aliquot_for_pow(exp_type exp, num_type prime) {
 // returns: 0 if not found, value>1 if found
 num_type find_base_for_pow(exp_type exp, num_type req_aliquot_sum) {
 	assert(exp > 1);
-	// TODO: estimate rounding errors and detect overflow
-	double dexp = 1.0 / ((double)(exp - 1));
-	num_type p_left = llround(pow((double)req_aliquot_sum/2.0, dexp));
-	num_type p_right = llrint(pow((double)req_aliquot_sum, dexp));
+	
+	exp_type sum_log2 = floor_log2(req_aliquot_sum);
+	num_type p_left;
+	if (sum_log2 > (exp << 1)) {
+		exp_type p_left_log2  = (sum_log2 - 2) / (exp - 1) - 1;
+		assert(p_left_log2 >= 1);
+		p_left  = ((num_type)1) << p_left_log2;
+	} else {
+		p_left = 2;
+	}
+	num_type p_right;
+	assert(exp - 2 <= EXP_TYPE_MAX / 3);
+	assert(sum_log2 <= EXP_TYPE_MAX / 2);
+	// preventing premature overflow
+	if (3 * (exp - 2) < 2 * sum_log2) {
+		// p_right_log2 = (sum_log2 + 3) / (exp - 1)
+		assert(sum_log2 < EXP_TYPE_MAX);
+		assert(exp <= EXP_TYPE_MAX - (sum_log2 + 1));
+		exp_type p_right_log2 = (sum_log2 + exp + 1) / (exp - 1);
+		assert(p_right_log2 <= MAX_EXP);
+		p_right = ((num_type)1) << p_right_log2;
+	} else {
+		p_right = 3;
+	}
+	
 	assert(p_left >= 2);
-	assert(p_right < NUM_TYPE_MAX);
-	assert(p_left <= p_right);
-	assert             (calc_aliquot_for_pow(exp, (p_left > 2 ? p_left-1 : 2)) < req_aliquot_sum);
-	assert_may_overflow(calc_aliquot_for_pow(exp, p_right+1                  ) > req_aliquot_sum);
-	if (p_left < 3) p_left = 3;
+	assert(p_left < p_right);
+	assert             (calc_aliquot_for_pow(exp, p_left ) < req_aliquot_sum);
+	assert_may_overflow(calc_aliquot_for_pow(exp, p_right) > req_aliquot_sum);
+	
+	++p_left; --p_right;
+	
 	while (p_left <= p_right) {
 		num_type p_mid = p_left + (p_right - p_left) / 2;
 		num_type aliquot_sum = calc_aliquot_for_pow(exp, p_mid);
