@@ -158,34 +158,10 @@ num_type find_base_for_pow(exp_type exp, num_type req_aliquot_sum) {
 	return 0;
 }
 
-// exp <= 2
 // returns: 0 if not found, value>1 if found
-num_type calc_last_base(num_type prefix_sigma, num_type prefix_aliquot, exp_type exp, num_type req_aliquot_sum) {
-	assert(exp <= 2);
+num_type calc_last_base_for_exp_1(num_type prefix_sigma, num_type prefix_aliquot, num_type req_aliquot_sum) {
 	assert(req_aliquot_sum > prefix_sigma);
-	num_type sub_req_sigma = req_aliquot_sum - prefix_sigma;
-	num_type p_numerator;
-	if (exp == 1) {
-		p_numerator = sub_req_sigma;
-	} else {
-		assert(prefix_sigma <= NUM_TYPE_MAX / prefix_sigma);
-		num_type summand1 = prefix_sigma*prefix_sigma;
-		assert(prefix_aliquot <= NUM_TYPE_MAX / 4);
-		assert(sub_req_sigma <= (NUM_TYPE_MAX / 4) / prefix_aliquot);
-		num_type summand2 = 4*prefix_aliquot*sub_req_sigma;
-		// XXX req_aliquot_sum <= 9126805519 < 2^33
-		// examples:
-		//     num = 2*3*38993^2, sum = 9123192222 => not overflows
-		//     num = 2*3*39019^2, sum = 9135362406 => overflows
-		assert(summand1 <= NUM_TYPE_MAX - summand2);
-		num_type discr = summand1 + summand2;
-		num_type discr_sqrt = round_sqrt(discr);
-		if (discr_sqrt*discr_sqrt != discr) return 0;
-		assert(discr_sqrt > prefix_sigma);
-		p_numerator = discr_sqrt - prefix_sigma;
-		if (p_numerator & 1) return 0;
-		p_numerator >>= 1;
-	}
+	num_type p_numerator = req_aliquot_sum - prefix_sigma;
 	num_type p_denominator = prefix_aliquot;
 	assert(p_denominator <= NUM_TYPE_MAX / 2);
 	assert(p_numerator >= 2*p_denominator);
@@ -195,7 +171,7 @@ num_type calc_last_base(num_type prefix_sigma, num_type prefix_aliquot, exp_type
 
 num_type calc_aliquot(num_type prefix_sigma, num_type prefix_aliquot, exp_type exp, num_type prime) {
 	assert(prefix_sigma > 1); assert(prefix_aliquot >= 1); assert(prefix_sigma > prefix_aliquot);
-	assert(exp > 2); assert(prime >= 2);
+	assert(exp >= 2); assert(prime >= 2);
 	num_type pow = calc_pow(prime, exp);
 	num_type pows_sum = (pow - 1) / (prime - 1);
 	assert(pow <= NUM_TYPE_MAX / prefix_aliquot);
@@ -213,7 +189,7 @@ num_type find_last_base(
 		num_type min_base,
 		num_type req_aliquot_sum
 ) {
-	assert(exp > 2);
+	assert(exp >= 2);
 	assert(min_base >= 5);
 	// TODO: estimate rounding errors and detect overflow
 	double dexp = 1.0 / (double)exp;
@@ -245,8 +221,8 @@ void find_last_prime_calc(calc_struct prime_calc_list[], pow_idx_type pow_count,
 	if (pow_count > 1) {
 		num_type prefix_sigma = prime_calc_list[pow_count-2].prefix_sigma;
 		num_type prefix_aliquot = prefix_sigma - prime_calc_list[pow_count-2].prefix_mul;
-		if (exp <= 2) {
-			prime = calc_last_base(prefix_sigma, prefix_aliquot, exp, req_aliquot_sum);
+		if (exp == 1) {
+			prime = calc_last_base_for_exp_1(prefix_sigma, prefix_aliquot, req_aliquot_sum);
 			assert(prime == 0 || prime > prime_calc_list[pow_count-1].prime);
 		} else {
 			num_type min_base = prime_calc_list[pow_count-1].prime;
@@ -532,10 +508,8 @@ void aliquot_inverse(num_type req_aliquot_sum) {
 		exit(EXIT_FAILURE);
 	}
 	// for num_type === uint64_t
-	if (
-		( (req_aliquot_sum & 1) && (req_aliquot_sum >  8589934589ull)) ||
-		(!(req_aliquot_sum & 1) && (req_aliquot_sum >= 9126805520ull))
-	) {
+	// TODO: estimate max allowed value for even req_aliquot_sum
+	if ((req_aliquot_sum & 1) && (req_aliquot_sum > 8589934589ull)) {
 		fprintf(stderr, "Input number is too large\n");
 		exit(EXIT_FAILURE);
 	}
