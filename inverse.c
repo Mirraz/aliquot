@@ -131,7 +131,7 @@ num_type calc_aliquot_for_pow(exp_type exp, num_type prime) {
 	return calc_pow_sigma(prime, exp-1);
 }
 
-// XXX max req_aliquot_sum < 2^54.19906
+// XXX [may be outdated] max req_aliquot_sum < 2^54.19906
 // (without assert_may_overflow): n = 2^55, 3^35, 5^24, 7^21: find_base_for_pow(exp = 42): p_mid   = 3: 3^41 overflows
 // (within  assert_may_overflow):                  s >= 2^42: find_base_for_pow(exp = 42): p_right = 3: 3^41 overflows
 
@@ -301,10 +301,13 @@ num_type prime_calc_recalc(calc_struct prime_calc_list[], pow_idx_type idx) {
 	if (idx != 0) {
 		assert(cur_prime_calc->pow <= NUM_TYPE_MAX / prime_calc_list[idx-1].prefix_mul);
 		cur_prime_calc->prefix_mul = prime_calc_list[idx-1].prefix_mul * cur_prime_calc->pow;
-		// XXX req_aliquot_sum < 8589934590 = 2^33-2
-		// for sum = 8589934590:
-		//     prime_calc_list = [.0 = {.exp=1, .prime=4294967295}, .1 = {.exp=1, prime=4294967297}]
-		//     idx = 1, cur_prime_calc->pow_sigma = 4294967298, prime_calc_list[idx-1].prefix_sigma = 4294967296
+		// XXX if req_aliquot_sum is odd
+		//     req_aliquot_sum < 8589934590 = 2^33-2
+		//     for sum = 8589934590:
+		//         prime_calc_list = [.0 = {.exp=1, .prime=4294967295}, .1 = {.exp=1, prime=4294967297}]
+		//         idx = 1, cur_prime_calc->pow_sigma = 4294967298, prime_calc_list[idx-1].prefix_sigma = 4294967296
+		// XXX if req_aliquot_sum is even
+		//     req_aliquot_sum <= 5283480833196 = aliquot_sum(2^27*3^9) < 2^43
 		assert(cur_prime_calc->pow_sigma <= NUM_TYPE_MAX / prime_calc_list[idx-1].prefix_sigma);
 		cur_prime_calc->prefix_sigma = prime_calc_list[idx-1].prefix_sigma * cur_prime_calc->pow_sigma;
 	} else {
