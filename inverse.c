@@ -194,8 +194,22 @@ num_type calc_last_base_for_exp_1(num_type prefix_sigma, num_type prefix_aliquot
 num_type calc_aliquot(num_type prefix_sigma, num_type prefix_aliquot, exp_type exp, num_type prime) {
 	assert(prefix_sigma > 1); assert(prefix_aliquot >= 1); assert(prefix_sigma > prefix_aliquot);
 	assert(exp >= 2); assert(prime >= 2);
-	num_type pow = calc_pow(prime, exp);
-	num_type pows_sum = (pow - 1) / (prime - 1);
+	num_type pow, pows_sum;
+	//pow = calc_pow(prime, exp);
+	//pows_sum = calc_pow_sigma(prime, exp-1);
+	{
+		assert(prime <= NUM_TYPE_MAX / prime);
+		pow = prime * prime;
+		pows_sum = prime + 1;
+		for (exp_type i=0; i<exp-2; ++i) {
+			assert(pow <= NUM_TYPE_MAX / prime);
+			pow *= prime;
+			assert(pows_sum <= NUM_TYPE_MAX / prime);
+			pows_sum *= prime;
+			assert(pows_sum < NUM_TYPE_MAX);
+			++pows_sum;
+		}
+	}
 	assert(pow <= NUM_TYPE_MAX / prefix_aliquot);
 	num_type summand1 = prefix_aliquot * pow;
 	assert(pows_sum <= NUM_TYPE_MAX / prefix_sigma);
