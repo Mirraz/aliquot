@@ -204,6 +204,8 @@ num_type calc_aliquot(num_type prefix_sigma, num_type prefix_aliquot, exp_type e
 	return summand1 + summand2;
 }
 
+#define min(x,y) ((x) < (y) ? (x) : (y))
+
 // returns: 0 if not found, value>1 if found
 num_type find_last_base(
 		num_type prefix_sigma, num_type prefix_aliquot,
@@ -213,18 +215,47 @@ num_type find_last_base(
 ) {
 	assert(exp >= 2);
 	assert(min_base >= 5);
-	// TODO: estimate rounding errors and detect overflow
-	double dexp = 1.0 / (double)exp;
-	assert(prefix_sigma <= NUM_TYPE_MAX - prefix_aliquot);
-	num_type sum_sigma_aliquot = prefix_sigma + prefix_aliquot;
-	num_type p_left = llround(pow((double)req_aliquot_sum/(double)sum_sigma_aliquot, dexp));
-	num_type p_right = llrint(pow((double)req_aliquot_sum/(double)prefix_aliquot   , dexp));
-	assert(p_left >= 1);
-	assert(p_right < NUM_TYPE_MAX);
-	assert(p_left <= p_right);
-	assert(p_left <= 2 || calc_aliquot(prefix_sigma, prefix_aliquot, exp, p_left-1 ) < req_aliquot_sum);
-	assert_may_overflow(  calc_aliquot(prefix_sigma, prefix_aliquot, exp, p_right+1) > req_aliquot_sum);
+	assert(min_base % 2 == 1);
+	
+	exp_type sum_log2 = floor_log2(req_aliquot_sum);
+	exp_type prefix_sigma_log2 = floor_log2(prefix_sigma);
+	exp_type prefix_aliq_log2  = floor_log2(prefix_aliquot);
+	num_type p_left;
+	assert(exp <= EXP_TYPE_MAX/2 - 1);
+	assert(prefix_aliq_log2  <= EXP_TYPE_MAX - 2*(exp - 1));
+	assert(prefix_sigma_log2 <= EXP_TYPE_MAX - 2*(exp + 1));
+	if (sum_log2 >= prefix_aliq_log2 + 2*(exp - 1) && sum_log2 >= prefix_sigma_log2 + 2*(exp + 1)) {
+		exp_type p_left_log2_01 = (sum_log2 - prefix_aliq_log2  - 2) / exp;
+		exp_type p_left_log2_02 = (sum_log2 - prefix_sigma_log2 - 4) / (exp - 1);
+		exp_type p_left_log2 = min(p_left_log2_02, p_left_log2_01);
+		assert(p_left_log2 > 0);
+		--p_left_log2;
+		assert(p_left_log2 <= MAX_EXP);
+		p_left = ((num_type)1) << p_left_log2;
+	} else {
+		p_left = 2;
+	}
+	num_type p_right;
+	{
+		assert(exp <= EXP_TYPE_MAX - sum_log2);
+		assert(sum_log2 + exp >= prefix_aliq_log2);
+		// p_right_log2_01 = (sum_log2 - prefix_aliq_log2 + 1) / exp
+		exp_type p_right_log2_01 = (sum_log2 + exp - prefix_aliq_log2) / exp;
+		// p_right_log2_02 = (sum_log2 - prefix_sigma_log2 + 3) / (exp - 1)
+		exp_type p_right_log2_02 = (sum_log2 + exp - prefix_sigma_log2 + 1) / (exp - 1);
+		exp_type p_right_log2 = min(p_right_log2_02, p_right_log2_01);
+		assert(p_right_log2 <= MAX_EXP);
+		p_right = ((num_type)1) << p_right_log2;
+	}
+	
+	assert(p_left >= 2);
+	assert(p_left < p_right);
+	assert             (calc_aliquot(prefix_sigma, prefix_aliquot, exp, p_left ) < req_aliquot_sum);
+	assert_may_overflow(calc_aliquot(prefix_sigma, prefix_aliquot, exp, p_right) > req_aliquot_sum);
+	
+	++p_left; --p_right;
 	if (p_left < min_base) p_left = min_base;
+	
 	while (p_left <= p_right) {
 		num_type p_mid = p_left + (p_right - p_left) / 2;
 		num_type aliquot_sum = calc_aliquot(prefix_sigma, prefix_aliquot, exp, p_mid);
