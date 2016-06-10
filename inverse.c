@@ -363,13 +363,21 @@ num_type prime_calc_recalc(calc_struct prime_calc_list[], pow_idx_type idx) {
 	return cur_prime_calc->prefix_sigma - cur_prime_calc->prefix_mul;
 }
 
-// TODO: optimise
+// is_prime_in_list values: [true, ..., true, false, ..., false]
 // begin_id <= idx < end_idx
 bool is_prime_calc_list_slice(calc_struct prime_calc_list[], pow_idx_type begin_idx, pow_idx_type end_idx) {
 	assert(begin_idx < end_idx);
-	pow_idx_type i = begin_idx;
-	while (i<end_idx && is_prime_calc(&(prime_calc_list[i]))) ++i;
-	return (i == end_idx);
+	pow_idx_type idx = end_idx - 1;
+	while (true) {
+		if (prime_calc_list[idx].is_prime_in_list) {
+			++idx;
+			break;
+		}
+		if (idx == begin_idx) break;
+		--idx;
+	}
+	while (idx < end_idx && is_prime_calc(&(prime_calc_list[idx]))) ++idx;
+	return idx == end_idx;
 }
 
 // inc and fill: both use maybe-primes
