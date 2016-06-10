@@ -363,12 +363,22 @@ num_type prime_calc_recalc(calc_struct prime_calc_list[], pow_idx_type idx) {
 	return cur_prime_calc->prefix_sigma - cur_prime_calc->prefix_mul;
 }
 
+// TODO: optimise
+// begin_id <= idx < end_idx
+bool is_prime_calc_list_slice(calc_struct prime_calc_list[], pow_idx_type begin_idx, pow_idx_type end_idx) {
+	assert(begin_idx < end_idx);
+	pow_idx_type i = begin_idx;
+	while (i<end_idx && is_prime_calc(&(prime_calc_list[i]))) ++i;
+	return (i == end_idx);
+}
+
 // inc and fill: both use maybe-primes
 // returns: true - success, false - failed
 bool inc_and_fill_maybe_primes(
 	calc_struct prime_calc_list[], pow_idx_type pow_count,
 	pow_idx_type idx, num_type req_aliquot_sum
 ) {
+	pow_idx_type initial_idx = idx;
 	const calc_struct *prev_prime_calc = &(prime_calc_list[idx]);
 	for (; idx<pow_count; ++idx) {
 		calc_struct *cur_prime_calc = &(prime_calc_list[idx]);
@@ -377,7 +387,11 @@ bool inc_and_fill_maybe_primes(
 		if (prefix_aliquot_sum > req_aliquot_sum) {
 			return false;
 		} else if (prefix_aliquot_sum == req_aliquot_sum) {
-			if (idx == pow_count-1 && is_prime_calc(cur_prime_calc)) aliquot_inverse_cb(prime_calc_list, pow_count);
+			if (idx == pow_count-1) {
+				if (is_prime_calc_list_slice(prime_calc_list, initial_idx, pow_count)) {
+					aliquot_inverse_cb(prime_calc_list, pow_count);
+				}
+			 }
 			return false;
 		}
 		prev_prime_calc = cur_prime_calc;
@@ -393,8 +407,7 @@ bool prime_calc_next(calc_struct prime_calc_list[], pow_idx_type pow_count, num_
 	while (true) {
 		bool fill_res = inc_and_fill_maybe_primes(prime_calc_list, pow_count, idx, req_aliquot_sum);
 		if (fill_res) {
-			while (idx < pow_count-1 && is_prime_calc( &(prime_calc_list[idx]) )) ++idx;
-			if (idx == pow_count-1) return false;
+			if (is_prime_calc_list_slice(prime_calc_list, idx, pow_count-1)) return false;
 		} else {
 			if (idx == 0) return true;
 			--idx;
