@@ -281,28 +281,31 @@ num_type find_last_base(
 }
 
 void find_last_prime_calc(calc_struct prime_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
-	assert(pow_count > 0);
+	assert(pow_count > 1);
 	exp_type exp = prime_calc_list[pow_count-1].exp;
 	
 	num_type prime;
-	if (pow_count > 1) {
-		num_type prefix_sigma = prime_calc_list[pow_count-2].prefix_sigma;
-		num_type prefix_aliquot = prefix_sigma - prime_calc_list[pow_count-2].prefix_mul;
-		if (exp == 1) {
-			prime = calc_last_base_for_exp_1(prefix_sigma, prefix_aliquot, req_aliquot_sum);
-			assert(prime == 0 || prime > prime_calc_list[pow_count-1].prime);
-		} else {
-			num_type min_base = prime_calc_list[pow_count-1].prime;
-			assert(min_base > 2);
-			assert(min_base <= NUM_TYPE_MAX - 2);
-			assert(calc_aliquot(prefix_sigma, prefix_aliquot, exp, min_base) < req_aliquot_sum);
-			prime = find_last_base(prefix_sigma, prefix_aliquot, exp, min_base+2, req_aliquot_sum);
-		}
+	num_type prefix_sigma = prime_calc_list[pow_count-2].prefix_sigma;
+	num_type prefix_aliquot = prefix_sigma - prime_calc_list[pow_count-2].prefix_mul;
+	if (exp == 1) {
+		prime = calc_last_base_for_exp_1(prefix_sigma, prefix_aliquot, req_aliquot_sum);
+		assert(prime == 0 || prime > prime_calc_list[pow_count-1].prime);
 	} else {
-		assert(prime_calc_list[0].prime == 2);
-		prime = find_base_for_pow(exp, req_aliquot_sum);
+		num_type min_base = prime_calc_list[pow_count-1].prime;
+		assert(min_base > 2);
+		assert(min_base <= NUM_TYPE_MAX - 2);
+		assert(calc_aliquot(prefix_sigma, prefix_aliquot, exp, min_base) < req_aliquot_sum);
+		prime = find_last_base(prefix_sigma, prefix_aliquot, exp, min_base+2, req_aliquot_sum);
 	}
 	
+	if (prime != 0 && is_prime(prime)) {
+		prime_calc_list[pow_count-1].prime = prime;
+		aliquot_inverse_cb(prime_calc_list, pow_count);
+	}
+}
+
+void find_last_prime_calc_for_pow(calc_struct prime_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
+	num_type prime = find_base_for_pow(prime_calc_list[pow_count-1].exp, req_aliquot_sum);
 	if (prime != 0 && is_prime(prime)) {
 		prime_calc_list[pow_count-1].prime = prime;
 		aliquot_inverse_cb(prime_calc_list, pow_count);
@@ -351,8 +354,6 @@ num_type prime_calc_recalc(calc_struct prime_calc_list[], pow_idx_type idx) {
 		//     for sum = 8589934590:
 		//         prime_calc_list = [.0 = {.exp=1, .prime=4294967295}, .1 = {.exp=1, prime=4294967297}]
 		//         idx = 1, cur_prime_calc->pow_sigma = 4294967298, prime_calc_list[idx-1].prefix_sigma = 4294967296
-		// XXX if req_aliquot_sum is even
-		//     req_aliquot_sum <= 5283480833196 = aliquot_sum(2^27*3^9) < 2^43
 		assert(cur_prime_calc->pow_sigma <= NUM_TYPE_MAX / prime_calc_list[idx-1].prefix_sigma);
 		cur_prime_calc->prefix_sigma = prime_calc_list[idx-1].prefix_sigma * cur_prime_calc->pow_sigma;
 	} else {
@@ -406,8 +407,13 @@ bool inc_and_fill_maybe_primes(
 }
 
 // returns: false - next is calculated, true - end is reached
-bool prime_calc_next(calc_struct prime_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
+bool prime_calc_next(
+	calc_struct prime_calc_list[], pow_idx_type pow_count,
+	pow_idx_type min_inc_prime_idx, num_type req_aliquot_sum
+) {
+	assert(min_inc_prime_idx <= 1);
 	assert(pow_count >= 2);
+	assert(min_inc_prime_idx <= pow_count - 2);
 	pow_idx_type idx = pow_count - 2;
 	
 	while (true) {
@@ -415,7 +421,7 @@ bool prime_calc_next(calc_struct prime_calc_list[], pow_idx_type pow_count, num_
 		if (fill_res) {
 			if (is_prime_calc_list_slice(prime_calc_list, idx, pow_count-1)) return false;
 		} else {
-			if (idx == 0) return true;
+			if (idx == min_inc_prime_idx) return true;
 			--idx;
 		}
 	}
@@ -424,12 +430,12 @@ bool prime_calc_next(calc_struct prime_calc_list[], pow_idx_type pow_count, num_
 void prime_calc(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
 	static calc_struct prime_calc_list[MAX_POW_COUNT];
 	memcpy(prime_calc_list, exp_calc_list, sizeof(exp_calc_list[0])*pow_count);
+	(void)exp_calc_list;
 	
-	if (
-		(pow_count == 1) ||
-		(pow_count == 2 && prime_calc_list[0].exp == 1 && prime_calc_list[1].exp == 1 && !(req_aliquot_sum & 1))
-	) {
-		find_last_prime_calc(prime_calc_list, pow_count, req_aliquot_sum);
+	if (pow_count == 1) {
+		// consider parity
+		if ((req_aliquot_sum & 1) != (prime_calc_list[0].exp & 1)) return;
+		find_last_prime_calc_for_pow(prime_calc_list, pow_count, req_aliquot_sum);
 		return;
 	}
 	
@@ -439,13 +445,45 @@ void prime_calc(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type re
 		prime_calc_list[i].prime_status = PRIME_STATUS_PRIME;
 	}
 	
+	// consider parity
+	pow_idx_type min_inc_prime_idx = 0;
+	bool inc_first_prime = false;
+	if (!(req_aliquot_sum & 1)) {
+		pow_idx_type i = 1;
+		while (i<pow_count && !(prime_calc_list[i].exp & 1)) ++i;
+		if (i < pow_count) {
+			min_inc_prime_idx = 1;
+		} else {
+			inc_first_prime = true;
+		}
+	} else {
+		pow_idx_type i = 1;
+		while (i<pow_count && !(prime_calc_list[i].exp & 1)) ++i;
+		if (i < pow_count) {
+			inc_first_prime = true;
+		} else {
+			if (!(prime_calc_list[0].exp & 1)) min_inc_prime_idx = 1;
+		}
+	}
+	
+	if (inc_first_prime) {
+		// XXX if req_aliquot_sum is even: req_aliquot_sum < 7925355423235 = aliquot_sum(2^26*3^10) < 2^42.85
+		bool fill_res = inc_and_fill_maybe_primes(prime_calc_list, pow_count, 0, req_aliquot_sum);
+		if (!fill_res) return;
+	}
+	
+	if (pow_count <= min_inc_prime_idx + 1) {
+		find_last_prime_calc(prime_calc_list, pow_count, req_aliquot_sum);
+		return;
+	}
+	
 	bool is_end_reached;
 	do {
 #ifndef NDEBUG
 		for (pow_idx_type i=0; i<pow_count-1; ++i) assert(prime_calc_list[i].prime_status == PRIME_STATUS_PRIME);
 #endif
 		find_last_prime_calc(prime_calc_list, pow_count, req_aliquot_sum);
-		is_end_reached = prime_calc_next(prime_calc_list, pow_count, req_aliquot_sum);
+		is_end_reached = prime_calc_next(prime_calc_list, pow_count, min_inc_prime_idx, req_aliquot_sum);
 	} while (!is_end_reached);
 }
 
