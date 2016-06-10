@@ -519,8 +519,10 @@ void exp_calc(num_type req_aliquot_sum) {
 			prefix_aliquot_sum = exp_calc_fill_any_exp(exp_calc_list, fill_idx);
 			assert(fill_idx == pow_count-1 || prefix_aliquot_sum < req_aliquot_sum);
 		}
-		if (prefix_aliquot_sum == req_aliquot_sum) aliquot_inverse_cb(exp_calc_list, pow_count);
-		if (prefix_aliquot_sum >= req_aliquot_sum) break;
+		if (prefix_aliquot_sum >= req_aliquot_sum) {
+			if (prefix_aliquot_sum == req_aliquot_sum) aliquot_inverse_cb(exp_calc_list, pow_count);
+			break;
+		}
 		
 		if (pow_count == 1) {
 			bool is_end_reached = exp_calc_next(exp_calc_list, pow_count, req_aliquot_sum);
