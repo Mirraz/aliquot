@@ -487,37 +487,24 @@ num_type exp_calc_fill_any_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
 
 // returns: false - next is calculated, true - end is reached
 bool exp_calc_next(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
-	pow_idx_type inc_idx = pow_count-1;
-	while (true) {
-		while (true) {
-			num_type prefix_aliquot_sum = exp_calc_inc_exp(exp_calc_list, inc_idx);
-			if (prefix_aliquot_sum < req_aliquot_sum) {
-				break;
-			} else if (prefix_aliquot_sum == req_aliquot_sum && inc_idx == pow_count-1) {
+	assert(pow_count > 0);
+	for (pow_idx_type idx = pow_count-1;; --idx) {
+		num_type inc_prefix_aliquot_sum = exp_calc_inc_exp(exp_calc_list, idx);
+		if (inc_prefix_aliquot_sum < req_aliquot_sum) {
+			num_type fill_prefix_aliquot_sum;
+			do {
+				if (idx == pow_count-1) return false;
+				++idx;
+				fill_prefix_aliquot_sum = exp_calc_fill_exp(exp_calc_list, idx);
+			} while (fill_prefix_aliquot_sum < req_aliquot_sum);
+			if (fill_prefix_aliquot_sum == req_aliquot_sum && idx == pow_count-1) {
 				aliquot_inverse_cb(exp_calc_list, pow_count);
 			}
-			if (inc_idx == 0) {
-				return true;
-			}
-			--inc_idx;
+		} else if (inc_prefix_aliquot_sum == req_aliquot_sum && idx == pow_count-1) {
+			aliquot_inverse_cb(exp_calc_list, pow_count);
 		}
-		pow_idx_type fill_idx;
-		for (fill_idx=inc_idx+1; fill_idx<pow_count; ++fill_idx) {
-			num_type prefix_aliquot_sum = exp_calc_fill_exp(exp_calc_list, fill_idx);
-			if (prefix_aliquot_sum == req_aliquot_sum) {
-				if (fill_idx == pow_count-1) aliquot_inverse_cb(exp_calc_list, pow_count);
-				break;
-			} else if (prefix_aliquot_sum > req_aliquot_sum) {
-				break;
-			}
-		}
-		if (fill_idx == pow_count) break;
-		if (inc_idx == 0) {
-			return true;
-		}
-		--inc_idx;
+		if (idx == 0) return true;
 	}
-	return false;
 }
 
 void exp_calc(num_type req_aliquot_sum) {
