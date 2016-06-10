@@ -395,11 +395,9 @@ bool inc_and_fill_maybe_primes(
 		if (prefix_aliquot_sum > req_aliquot_sum) {
 			return false;
 		} else if (prefix_aliquot_sum == req_aliquot_sum) {
-			if (idx == pow_count-1) {
-				if (is_prime_calc_list_slice(prime_calc_list, initial_idx, pow_count)) {
-					aliquot_inverse_cb(prime_calc_list, pow_count);
-				}
-			 }
+			if (idx == pow_count-1 && is_prime_calc_list_slice(prime_calc_list, initial_idx, pow_count)) {
+				aliquot_inverse_cb(prime_calc_list, pow_count);
+			}
 			return false;
 		}
 		prev_prime_calc = cur_prime_calc;
