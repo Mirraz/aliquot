@@ -9,6 +9,7 @@
 
 #include "typedefs.h"
 #include "primes.h"
+#include "inverse.h"
 
 #define dprintf(...) fprintf(stderr, __VA_ARGS__)
 #define assert_may_overflow assert
@@ -39,6 +40,8 @@ prime_type *primes;
 size_t primes_count;
 num_type primes_max;
 
+aliquot_inverse_cb_type aliquot_inverse_external_cb;
+
 #ifndef NDEBUG
 void calc_list_dprint(calc_struct calc_list[], pow_idx_type pow_count) {
 	pow_idx_type i;
@@ -55,7 +58,14 @@ void calc_list_dprint(calc_struct calc_list[], pow_idx_type pow_count) {
 }
 #endif
 
-void aliquot_inverse_cb(calc_struct calc_list[], pow_idx_type pow_count);
+static bool aliquot_inverse_cb(calc_struct prime_calc_list[], pow_idx_type pow_count) {
+	static prime_pow_struct prime_pow_list[MAX_POW_COUNT];
+	for (pow_idx_type i=0; i<pow_count; ++i) {
+		prime_pow_list[i].prime = prime_calc_list[i].prime;
+		prime_pow_list[i].exp   = prime_calc_list[i].exp;
+	}
+	return aliquot_inverse_external_cb(prime_pow_list, pow_count);
+}
 
 // returns: base^exp
 num_type calc_pow(num_type base, exp_type exp) {
@@ -618,7 +628,11 @@ void aliquot_inverse_terminate() {
 	primes_destruct(primes_array);
 }
 
-void aliquot_inverse(num_type req_aliquot_sum) {
+void aliquot_inverse_set_callback(aliquot_inverse_cb_type cb) {
+	aliquot_inverse_external_cb = cb;
+}
+
+void aliquot_inverse_run(num_type req_aliquot_sum) {
 	if (req_aliquot_sum <= 1) {
 		fprintf(stderr, "Wrong input: " PRI_NUM_TYPE "\n", req_aliquot_sum);
 		exit(EXIT_FAILURE);
@@ -633,42 +647,4 @@ void aliquot_inverse(num_type req_aliquot_sum) {
 }
 
 // --- main }
-
-//==============================
-
-void aliquot_inverse_cb(calc_struct calc_list[], pow_idx_type pow_count) {
-	//for (pow_idx_type i=0; i<pow_count; ++i)
-	//	printf(PRI_NUM_TYPE "^" PRI_EXP_TYPE " ", calc_list[i].prime, calc_list[i].exp);
-	//printf("\n");
-	
-	num_type value = 1;
-	for (pow_idx_type i=0; i<pow_count; ++i) {
-		// XXX req_aliquot_sum < 4294967312 = 2^32+16
-		// for sum = 4294967312: n = 4294967311^2 > 2^64
-		num_type pow = calc_pow(calc_list[i].prime, calc_list[i].exp);
-		assert(value <= NUM_TYPE_MAX / pow);
-		value *= pow;
-	}
-	printf(PRI_NUM_TYPE "\n", value);
-}
-
-void run(const char *primes_filename) {
-	aliquot_inverse_init(primes_filename);
-	
-	num_type req_aliquot_sum;
-	int scanf_res = scanf(SCN_NUM_TYPE, &req_aliquot_sum);
-	assert(scanf_res == 1);
-	aliquot_inverse(req_aliquot_sum);
-	
-	aliquot_inverse_terminate();
-}
-
-int main(int argc, char *argv[]) {
-	if (argc != 2) {
-		fprintf(stderr, "Too few arguments\n");
-		exit(EXIT_FAILURE);
-	}
-	run(argv[1]);
-	return 0;
-}
 
