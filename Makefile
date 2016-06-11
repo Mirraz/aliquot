@@ -5,6 +5,7 @@ STRIP=strip -s
 WARNINGS=-Wall -Wextra -pedantic
 DEBUG=
 #DEBUG=-g -ggdb
+#COPTIM=-march=native -O3
 COPTIM=-march=native -O2
 #COPTIM=-O0
 #DEFINES=-DNDEBUG
