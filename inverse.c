@@ -43,7 +43,8 @@ num_type primes_max;
 aliquot_inverse_cb_type aliquot_inverse_external_cb;
 
 #ifndef NDEBUG
-void calc_list_dprint(calc_struct calc_list[], pow_idx_type pow_count) {
+static void calc_list_dprint(calc_struct calc_list[], pow_idx_type pow_count) __attribute__ ((unused));
+static void calc_list_dprint(calc_struct calc_list[], pow_idx_type pow_count) {
 	pow_idx_type i;
 	dprintf("exp:              "); for (i=0; i<pow_count; ++i) dprintf(PRI_EXP_TYPE "\t", calc_list[i].exp         ); dprintf("\n");
 	dprintf("prime:            "); for (i=0; i<pow_count; ++i) dprintf(PRI_NUM_TYPE "\t", calc_list[i].prime       ); dprintf("\n");
@@ -82,7 +83,7 @@ num_type calc_pow(num_type base, exp_type exp) {
 }
 
 // returns: base^exp + base^(exp-1) + ... + base + 1
-num_type calc_pow_sigma(num_type base, exp_type exp) {
+static num_type calc_pow_sigma(num_type base, exp_type exp) {
 	assert(exp > 0);
 	assert(base > 1);
 	if (exp == 1) {
@@ -99,7 +100,7 @@ num_type calc_pow_sigma(num_type base, exp_type exp) {
 	return result;
 }
 
-bool is_big_odd_number_prime(num_type n) {
+static bool is_big_odd_number_prime(num_type n) {
 	assert(n > primes_max);
 	assert(n & 1);
 	num_type n_sqrt = round_sqrt(n);
@@ -116,7 +117,7 @@ bool is_big_odd_number_prime(num_type n) {
 	return true;
 }
 
-bool is_prime(num_type n) {
+static bool is_prime(num_type n) {
 	assert(n > 1);
 	assert(primes_count > 0);
 	if (!(n & 1)) return n == 2;
@@ -136,7 +137,7 @@ bool is_prime(num_type n) {
 
 // --- find last prime --- {
 
-num_type calc_aliquot_for_pow(exp_type exp, num_type prime) {
+static num_type calc_aliquot_for_pow(exp_type exp, num_type prime) {
 	assert(exp > 1);
 	return calc_pow_sigma(prime, exp-1);
 }
@@ -146,7 +147,7 @@ num_type calc_aliquot_for_pow(exp_type exp, num_type prime) {
 // (within  assert_may_overflow):                  s >= 2^42: find_base_for_pow(exp = 42): p_right = 3: 3^41 overflows
 
 // returns: 0 if not found, value>1 if found
-num_type find_base_for_pow(exp_type exp, num_type req_aliquot_sum) {
+static num_type find_base_for_pow(exp_type exp, num_type req_aliquot_sum) {
 	assert(exp > 1);
 	
 	exp_type sum_log2 = floor_log2(req_aliquot_sum);
@@ -191,7 +192,7 @@ num_type find_base_for_pow(exp_type exp, num_type req_aliquot_sum) {
 }
 
 // returns: 0 if not found, value>1 if found
-num_type calc_last_base_for_exp_1(num_type prefix_sigma, num_type prefix_aliquot, num_type req_aliquot_sum) {
+static num_type calc_last_base_for_exp_1(num_type prefix_sigma, num_type prefix_aliquot, num_type req_aliquot_sum) {
 	assert(req_aliquot_sum > prefix_sigma);
 	num_type p_numerator = req_aliquot_sum - prefix_sigma;
 	num_type p_denominator = prefix_aliquot;
@@ -201,7 +202,7 @@ num_type calc_last_base_for_exp_1(num_type prefix_sigma, num_type prefix_aliquot
 	return p_numerator / p_denominator;
 }
 
-num_type calc_aliquot(num_type prefix_sigma, num_type prefix_aliquot, exp_type exp, num_type prime) {
+static num_type calc_aliquot(num_type prefix_sigma, num_type prefix_aliquot, exp_type exp, num_type prime) {
 	assert(prefix_sigma > 1); assert(prefix_aliquot >= 1); assert(prefix_sigma > prefix_aliquot);
 	assert(exp >= 2); assert(prime >= 2);
 	num_type pow, pows_sum;
@@ -231,7 +232,7 @@ num_type calc_aliquot(num_type prefix_sigma, num_type prefix_aliquot, exp_type e
 #define min(x,y) ((x) < (y) ? (x) : (y))
 
 // returns: 0 if not found, value>1 if found
-num_type find_last_base(
+static num_type find_last_base(
 		num_type prefix_sigma, num_type prefix_aliquot,
 		exp_type exp,
 		num_type min_base,
@@ -290,7 +291,7 @@ num_type find_last_base(
 	return 0;
 }
 
-void find_last_prime_calc(calc_struct prime_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
+static void find_last_prime_calc(calc_struct prime_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
 	assert(pow_count > 1);
 	exp_type exp = prime_calc_list[pow_count-1].exp;
 	
@@ -314,7 +315,7 @@ void find_last_prime_calc(calc_struct prime_calc_list[], pow_idx_type pow_count,
 	}
 }
 
-void find_last_prime_calc_for_pow(calc_struct prime_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
+static void find_last_prime_calc_for_pow(calc_struct prime_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
 	num_type prime = find_base_for_pow(prime_calc_list[pow_count-1].exp, req_aliquot_sum);
 	if (prime != 0 && is_prime(prime)) {
 		prime_calc_list[pow_count-1].prime = prime;
@@ -326,7 +327,7 @@ void find_last_prime_calc_for_pow(calc_struct prime_calc_list[], pow_idx_type po
 // --- iterate primes --- {
 
 // maybe out_prime_calc == in_prime_calc
-void next_maybe_prime_calc(const calc_struct *in_prime_calc, calc_struct *out_prime_calc) {
+static void next_maybe_prime_calc(const calc_struct *in_prime_calc, calc_struct *out_prime_calc) {
 	if (in_prime_calc->is_prime_in_list && in_prime_calc->prime_idx < primes_count-1) {
 		size_t out_prime_idx = in_prime_calc->prime_idx + 1;
 		out_prime_calc->prime = primes[out_prime_idx];
@@ -341,7 +342,7 @@ void next_maybe_prime_calc(const calc_struct *in_prime_calc, calc_struct *out_pr
 	}
 }
 
-bool is_prime_calc(calc_struct *cur_prime_calc) {
+static bool is_prime_calc(calc_struct *cur_prime_calc) {
 	assert(cur_prime_calc->prime_status != PRIME_STATUS_ERROR);
 	if (cur_prime_calc->prime_status == PRIME_STATUS_PRIME) return true;
 	assert(cur_prime_calc->prime_status == PRIME_STATUS_UNKNOWN);
@@ -352,7 +353,7 @@ bool is_prime_calc(calc_struct *cur_prime_calc) {
 	return is_prime_res;
 }
 
-num_type prime_calc_recalc(calc_struct prime_calc_list[], pow_idx_type idx) {
+static num_type prime_calc_recalc(calc_struct prime_calc_list[], pow_idx_type idx) {
 	calc_struct *cur_prime_calc = &(prime_calc_list[idx]);
 	cur_prime_calc->pow       = calc_pow      (cur_prime_calc->prime, cur_prime_calc->exp);
 	cur_prime_calc->pow_sigma = calc_pow_sigma(cur_prime_calc->prime, cur_prime_calc->exp);
@@ -376,7 +377,7 @@ num_type prime_calc_recalc(calc_struct prime_calc_list[], pow_idx_type idx) {
 
 // is_prime_in_list values: [true, ..., true, false, ..., false]
 // begin_id <= idx < end_idx
-bool is_prime_calc_list_slice(calc_struct prime_calc_list[], pow_idx_type begin_idx, pow_idx_type end_idx) {
+static bool is_prime_calc_list_slice(calc_struct prime_calc_list[], pow_idx_type begin_idx, pow_idx_type end_idx) {
 	assert(begin_idx < end_idx);
 	pow_idx_type idx = end_idx - 1;
 	while (true) {
@@ -393,7 +394,7 @@ bool is_prime_calc_list_slice(calc_struct prime_calc_list[], pow_idx_type begin_
 
 // inc and fill: both use maybe-primes
 // returns: true - success, false - failed
-bool inc_and_fill_maybe_primes(
+static bool inc_and_fill_maybe_primes(
 	calc_struct prime_calc_list[], pow_idx_type pow_count,
 	pow_idx_type idx, num_type req_aliquot_sum
 ) {
@@ -417,7 +418,7 @@ bool inc_and_fill_maybe_primes(
 }
 
 // returns: false - next is calculated, true - end is reached
-bool prime_calc_next(
+static bool prime_calc_next(
 	calc_struct prime_calc_list[], pow_idx_type pow_count,
 	pow_idx_type min_inc_prime_idx, num_type req_aliquot_sum
 ) {
@@ -437,7 +438,7 @@ bool prime_calc_next(
 	}
 }
 
-void prime_calc(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
+static void prime_calc(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
 	static calc_struct prime_calc_list[MAX_POW_COUNT];
 	memcpy(prime_calc_list, exp_calc_list, sizeof(exp_calc_list[0])*pow_count);
 	(void)exp_calc_list;
@@ -500,7 +501,7 @@ void prime_calc(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type re
 // --- iterate primes --- }
 // --- iterate exps --- {
 
-num_type exp_calc_inc_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
+static num_type exp_calc_inc_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
 	calc_struct *cur_exp_calc = &(exp_calc_list[idx]);
 	assert(cur_exp_calc->exp < MAX_EXP);
 	++cur_exp_calc->exp;
@@ -519,7 +520,7 @@ num_type exp_calc_inc_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
 	return cur_exp_calc->prefix_sigma - cur_exp_calc->prefix_mul;
 }
 
-num_type exp_calc_fill_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
+static num_type exp_calc_fill_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
 	calc_struct *cur_exp_calc = &(exp_calc_list[idx]);
 	cur_exp_calc->exp = 1;
 	cur_exp_calc->pow = cur_exp_calc->prime;
@@ -534,7 +535,7 @@ num_type exp_calc_fill_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
 	return cur_exp_calc->prefix_sigma - cur_exp_calc->prefix_mul;
 }
 
-num_type exp_calc_fill_any_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
+static num_type exp_calc_fill_any_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
 	if (idx != 0) {
 		return exp_calc_fill_exp(exp_calc_list, idx);
 	} else {
@@ -553,7 +554,7 @@ num_type exp_calc_fill_any_exp(calc_struct exp_calc_list[], pow_idx_type idx) {
 // XXX req_aliquot_sum < 43281303292150770 < 2^56
 
 // returns: false - next is calculated, true - end is reached
-bool exp_calc_next(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
+static bool exp_calc_next(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type req_aliquot_sum) {
 	assert(pow_count > 0);
 	for (pow_idx_type idx = pow_count-1;; --idx) {
 		num_type inc_prefix_aliquot_sum = exp_calc_inc_exp(exp_calc_list, idx);
@@ -574,7 +575,7 @@ bool exp_calc_next(calc_struct exp_calc_list[], pow_idx_type pow_count, num_type
 	}
 }
 
-void exp_calc(num_type req_aliquot_sum) {
+static void exp_calc(num_type req_aliquot_sum) {
 	assert(req_aliquot_sum > 1);
 	
 	static calc_struct exp_calc_list[MAX_POW_COUNT];
