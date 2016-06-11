@@ -24,11 +24,14 @@ bool aliquot_inverse_cb(prime_pow_struct calc_list[], pow_idx_type pow_count) {
 
 void run(const char *primes_filename) {
 	aliquot_inverse_init(primes_filename);
+	aliquot_inverse_set_callback(aliquot_inverse_cb);
 	
 	num_type req_aliquot_sum;
 	int scanf_res = scanf(SCN_NUM_TYPE, &req_aliquot_sum);
-	assert(scanf_res == 1);
-	aliquot_inverse_set_callback(aliquot_inverse_cb);
+	if (scanf_res != 1) {
+		fprintf(stderr, "Wrong input\n");
+		exit(EXIT_FAILURE);
+	}
 	aliquot_inverse_run(req_aliquot_sum);
 	
 	aliquot_inverse_terminate();
