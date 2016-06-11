@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <inttypes.h>
+#include <math.h>
 
 typedef uint_fast64_t num_type;
 #define NUM_TYPE_MAX UINT_FAST64_MAX
