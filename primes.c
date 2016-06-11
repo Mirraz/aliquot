@@ -15,9 +15,7 @@ struct primes_array_struct_ {
 	size_t count;
 };
 
-primes_array_struct *primes_construct() {
-	const char *primes_filename = "primes32.bin";
-	
+primes_array_struct *primes_construct(const char *primes_filename) {
 	primes_array_struct *primes_array = malloc(sizeof(primes_array_struct));
 	if (primes_array == NULL) {perror("malloc"); exit(EXIT_FAILURE);}
 	

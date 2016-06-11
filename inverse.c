@@ -600,10 +600,10 @@ void exp_calc(num_type req_aliquot_sum) {
 int default_rounding_direction;
 primes_array_struct *primes_array;
 
-void aliquot_inverse_init() {
+void aliquot_inverse_init(const char *primes_filename) {
 	assert(sizeof(first_primes)/sizeof(first_primes[0]) >= MAX_POW_COUNT);
 
-	primes_array = primes_construct();
+	primes_array = primes_construct(primes_filename);
 	primes = primes_get_array(primes_array);
 	primes_count = primes_get_count(primes_array);
 	assert(primes_count > 0);
@@ -652,8 +652,8 @@ void aliquot_inverse_cb(calc_struct calc_list[], pow_idx_type pow_count) {
 	printf(PRI_NUM_TYPE "\n", value);
 }
 
-void run() {
-	aliquot_inverse_init();
+void run(const char *primes_filename) {
+	aliquot_inverse_init(primes_filename);
 	
 	num_type req_aliquot_sum;
 	int scanf_res = scanf(SCN_NUM_TYPE, &req_aliquot_sum);
@@ -663,8 +663,12 @@ void run() {
 	aliquot_inverse_terminate();
 }
 
-int main() {
-	run();
+int main(int argc, char *argv[]) {
+	if (argc != 2) {
+		fprintf(stderr, "Too few arguments\n");
+		exit(EXIT_FAILURE);
+	}
+	run(argv[1]);
 	return 0;
 }
 
