@@ -9,6 +9,7 @@ DEBUG=
 COPTIM=-march=native -O2
 #COPTIM=-O0
 #DEFINES=-DNDEBUG
+#DEFINES=-D'assert_may_overflow(cond)='
 DEFINES=
 INCLUDES=
 CSTD=-std=c11

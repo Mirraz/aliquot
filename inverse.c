@@ -12,8 +12,11 @@
 #include "inverse.h"
 
 #define dprintf(...) fprintf(stderr, __VA_ARGS__)
-#define assert_may_overflow assert
-//#define assert_may_overflow(cond) ;
+#ifndef assert_may_overflow
+#  define assert_may_overflow assert
+//#  define assert_may_overflow(cond) ;
+#endif
+
 
 typedef enum {
 	PRIME_STATUS_ERROR,
