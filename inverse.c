@@ -448,6 +448,7 @@ static void prime_calc(calc_struct exp_calc_list[], pow_idx_type pow_count, num_
 		return;
 	}
 	
+	assert(primes_count >= MAX_POW_COUNT);
 	for (pow_idx_type i=0; i<pow_count; ++i) {
 		prime_calc_list[i].prime_idx = i;
 		prime_calc_list[i].is_prime_in_list = true;
