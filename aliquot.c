@@ -24,12 +24,12 @@ static num_type calc_pow_sigma(num_type base, exp_type exp) {
 	return result;
 }
 
-void factorize_cb(num_type prime, exp_type exp);
+static void factorize_cb(num_type prime, exp_type exp);
 
 prime_type *factorize_primes;
 size_t factorize_primes_count;
 
-void factorize(num_type n) {
+static void factorize(num_type n) {
 	assert(n > 0);
 	if (n == 1) return;
 	
@@ -67,7 +67,7 @@ void factorize(num_type n) {
 
 num_type sigma;
 
-void factorize_cb(num_type prime, exp_type exp) {
+static void factorize_cb(num_type prime, exp_type exp) {
 	assert(exp > 0);
 	num_type mul = calc_pow_sigma(prime, exp);
 	assert(sigma <= NUM_TYPE_MAX / mul);
