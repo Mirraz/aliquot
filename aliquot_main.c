@@ -17,8 +17,7 @@ void run_aliquot_sequence() {
 }
 
 void run_aliquot_sum_table() {
-	num_type n;
-	for (n=2; n<=16777216; ++n) {
+	for (num_type n=2; n<=16777216; ++n) {
 		//printf(PRI_NUM_TYPE "\t", n);
 		printf(PRI_NUM_TYPE "\n", calc_aliquot_sum(n));
 	}
