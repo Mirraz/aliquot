@@ -2,17 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>		// exit, EXIT_FAILURE
 #include <stddef.h>		// size_t
-#include <stdbool.h>
 #include <stdint.h>
-#include <inttypes.h>
 #include <math.h>
 
+#include "aliquot.h"
 #include "primes.h"
 
-typedef uint_fast64_t num_type;
 #define NUM_TYPE_MAX UINT64_MAX
-
 typedef uint_fast8_t exp_type;
+#define round_sqrt(n) round(sqrt((double)n))
 
 // returns: base^exp + base^(exp-1) + ... + base + 1
 static num_type calc_pow_sigma(num_type base, exp_type exp) {
@@ -25,8 +23,6 @@ static num_type calc_pow_sigma(num_type base, exp_type exp) {
 	}
 	return result;
 }
-
-#define round_sqrt(n) round(sqrt((double)n))
 
 void factorize_cb(num_type prime, exp_type exp);
 
@@ -100,52 +96,5 @@ void aliquot_init(const char *primes_filename) {
 
 void aliquot_terminate() {
 	primes_destruct(primes_array);
-}
-
-// ----------------
-
-void run_aliquot_sequence() {
-	num_type n;
-	int scanf_res = scanf("%" SCNuFAST64, &n);
-	assert(scanf_res == 1);
-	printf("%" PRIuFAST64 "\n", n);
-	
-	while (n != 1) {
-		n = calc_aliquot_sum(n);
-		printf("%" PRIuFAST64 "\n", n);
-	}
-}
-
-void run_aliquot_sum_table() {
-	num_type n;
-	for (n=2; n<=16777216; ++n) {
-		//printf("%" PRIuFAST64 "\t", n);
-		printf("%" PRIuFAST64 "\n", calc_aliquot_sum(n));
-	}
-}
-
-void run_aliquot_sum() {
-	num_type n;
-	int scanf_res = scanf("%" SCNuFAST64, &n);
-	assert(scanf_res == 1);
-	
-	printf("%" PRIuFAST64 "\n", calc_aliquot_sum(n));
-}
-
-void run(const char *primes_filename) {
-	aliquot_init(primes_filename);
-	
-	run_aliquot_sum();
-	
-	aliquot_terminate();
-}
-
-int main(int argc, char *argv[]) {
-	if (argc != 2) {
-		fprintf(stderr, "Too few arguments\n");
-		exit(EXIT_FAILURE);
-	}
-	run(argv[1]);
-	return 0;
 }
 

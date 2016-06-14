@@ -28,12 +28,19 @@ all: $(BUILD_DIR) inverse
 $(BUILD_DIR):
 	mkdir $(BUILD_DIR)
 
-aliquot: $(BUILD_DIR)/aliquot.o $(BUILD_DIR)/primes.o
+
+
+aliquot: $(BUILD_DIR)/aliquot_main.o $(BUILD_DIR)/aliquot.o $(BUILD_DIR)/primes.o
 	$(LD) -o $@ $^ $(LDFLAGS)
 	$(STRIP) $@
 
+$(BUILD_DIR)/aliquot_main.o: $(SRC_DIR)/aliquot_main.c $(SRC_DIR)/aliquot.h Makefile
+	$(CC) -o $@ $< -c $(CFLAGS)
+
 $(BUILD_DIR)/aliquot.o: $(SRC_DIR)/aliquot.c $(SRC_DIR)/primes.h Makefile
 	$(CC) -o $@ $< -c $(CFLAGS)
+
+
 
 inverse: $(BUILD_DIR)/inverse_main.o $(BUILD_DIR)/inverse.o $(BUILD_DIR)/primes.o
 	$(LD) -o $@ $^ $(LDFLAGS)
@@ -47,6 +54,8 @@ $(BUILD_DIR)/inverse.o: $(SRC_DIR)/inverse.c $(SRC_DIR)/inverse.h $(SRC_DIR)/pri
 
 $(BUILD_DIR)/primes.o: $(SRC_DIR)/primes.c $(SRC_DIR)/primes.h Makefile
 	$(CC) -o $@ $< -c $(CFLAGS)
+
+
 
 clean:
 	rm -r $(BUILD_DIR)
