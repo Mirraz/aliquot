@@ -28,11 +28,11 @@ all: $(BUILD_DIR) inverse
 $(BUILD_DIR):
 	mkdir $(BUILD_DIR)
 
-aliquot: $(BUILD_DIR)/aliquot.o
+aliquot: $(BUILD_DIR)/aliquot.o $(BUILD_DIR)/primes.o
 	$(LD) -o $@ $^ $(LDFLAGS)
 	$(STRIP) $@
 
-$(BUILD_DIR)/aliquot.o: $(SRC_DIR)/aliquot.c Makefile
+$(BUILD_DIR)/aliquot.o: $(SRC_DIR)/aliquot.c $(SRC_DIR)/primes.h Makefile
 	$(CC) -o $@ $< -c $(CFLAGS)
 
 inverse: $(BUILD_DIR)/inverse_main.o $(BUILD_DIR)/inverse.o $(BUILD_DIR)/primes.o
