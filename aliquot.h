@@ -1,7 +1,12 @@
 #ifndef ALIQUOT_H
 #define ALIQUOT_H
 
+#include <stdint.h>
+#include <inttypes.h>
+
 typedef uint_fast64_t num_type;
+#define PRI_NUM_TYPE "%" PRIuFAST64
+#define SCN_NUM_TYPE "%" SCNuFAST64
 
 void aliquot_init(const char *primes_filename);
 void aliquot_terminate();
