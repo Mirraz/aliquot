@@ -9,26 +9,21 @@
 typedef uint_fast64_t num_type;
 #define NUM_TYPE_MAX UINT64_MAX
 
-// ===================================
-
 typedef uint_fast8_t exp_type;
-#define EXP_TYPE_MAX_MASK (((exp_type)1)<<7)
 
-num_type pow_fast(num_type base, exp_type exp) {
+// returns: base^exp + base^(exp-1) + ... + base + 1
+static num_type calc_pow_sigma(num_type base, exp_type exp) {
 	num_type result = 1;
-	exp_type mask = EXP_TYPE_MAX_MASK;
-	while (mask != 0 && !(exp & mask)) mask >>= 1;
-	while (mask > 0) {
-		assert(result <= NUM_TYPE_MAX / result);
-		result *= result;
-		if (exp & mask) {
-			assert(result <= NUM_TYPE_MAX / base);
-			result *= base;
-		}
-		mask >>= 1;
+	for (exp_type i=0; i<exp; ++i) {
+		assert(result <= NUM_TYPE_MAX / base);
+		result *= base;
+		assert(result < NUM_TYPE_MAX);
+		++result;
 	}
 	return result;
 }
+
+// ===================================
 
 #define round_sqrt(n) round(sqrt((double)n))
 
@@ -101,17 +96,24 @@ num_type sigma;
 
 void factorize_cb(num_type prime, exp_type exp) {
 	assert(exp > 0);
-	num_type mul;
-	if (exp > 1) {
-		//printf("%" PRIuFAST64 "^%" PRIuFAST8 " ", prime, exp);
-		mul = (pow_fast(prime, exp+1) - 1) / (prime - 1);
-	} else { // exp == 1
-		//printf("%" PRIuFAST64 " ", prime);
-		mul = prime + 1;
-	}
+	num_type mul = calc_pow_sigma(prime, exp);
 	assert(sigma <= NUM_TYPE_MAX / mul);
 	sigma *= mul;
 }
+
+num_type calc_sigma(num_type num) {
+	sigma = 1;
+	factorize(num);
+	return sigma;
+}
+
+num_type calc_aliquot_sum(num_type num) {
+	num_type sigma = calc_sigma(num);
+	assert(sigma > num);
+	return sigma - num;
+}
+
+// ----------------
 
 #define primes_size (1024*1024)
 num_type primes[primes_size];
@@ -123,58 +125,43 @@ void primes_init(size_t primes_count) {
 	factorize_primes = primes;
 }
 
-void aliquot_sequence_run(num_type n) {
+// ----------------
+
+void run_aliquot_sequence() {
+	primes_init(1024*32);
+	
+	num_type n;
+	int scanf_res = scanf("%" SCNuFAST64, &n);
+	assert(scanf_res == 1);
+	printf("%" PRIuFAST64 "\n", n);
+	
 	while (n != 1) {
+		n = calc_aliquot_sum(n);
 		printf("%" PRIuFAST64 "\n", n);
-		sigma = 1;
-		factorize(n);
-		assert(sigma > n);
-		//printf("\t %" PRIuFAST64 "\n", sigma);
-		n = sigma - n;
 	}
 }
 
-void aliquot_sequence() {
+void run_aliquot_sum_table() {
 	primes_init(1024*32);
 	
 	num_type n;
-	int scanf_res = scanf("%" SCNuFAST64, &n);
-	assert(scanf_res == 1);
-	//for (;; ++n) {
-		aliquot_sequence_run(n);
-	//	printf("\n");
-	//}
-}
-
-void aliquot_sum_table() {
-	primes_init(1024*32);
-	
-	num_type n;
-	for (n=2;n<16777216; ++n) {
-		//printf("%" PRIuFAST64, n);
-		sigma = 1;
-		factorize(n);
-		assert(sigma > n);
-		//printf(/*"\t %" PRIuFAST64*/ "\t %"  PRIuFAST64 "\n", /*sigma,*/ sigma - n);
-		printf("%" PRIuFAST64 "\t%"  PRIuFAST64 "\n", n, sigma - n);
+	for (n=2; n<=16777216; ++n) {
+		printf("%" PRIuFAST64 "\t%"  PRIuFAST64 "\n", n, calc_aliquot_sum(n));
 	}
 }
 
-void aliquot_sum() {
+void run_aliquot_sum() {
 	primes_init(1024*32);
 	
 	num_type n;
 	int scanf_res = scanf("%" SCNuFAST64, &n);
 	assert(scanf_res == 1);
 	
-	sigma = 1;
-	factorize(n);
-	assert(sigma > n);
-	printf("%" PRIuFAST64 "\n", sigma - n);
+	printf("%" PRIuFAST64 "\n", calc_aliquot_sum(n));
 }
 
 int main() {
-	aliquot_sum();
+	run_aliquot_sum();
 	return 0;
 }
 
