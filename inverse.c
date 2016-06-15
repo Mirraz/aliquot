@@ -62,15 +62,6 @@ static void calc_list_dprint(calc_struct calc_list[], pow_idx_type pow_count) {
 }
 #endif
 
-static bool aliquot_inverse_cb(calc_struct prime_calc_list[], pow_idx_type pow_count) {
-	static prime_pow_struct prime_pow_list[MAX_POW_COUNT];
-	for (pow_idx_type i=0; i<pow_count; ++i) {
-		prime_pow_list[i].prime = prime_calc_list[i].prime;
-		prime_pow_list[i].exp   = prime_calc_list[i].exp;
-	}
-	return aliquot_inverse_external_cb(prime_pow_list, pow_count);
-}
-
 #include "pow.c"
 
 num_type calc_pow(num_type base, exp_type exp) {
@@ -116,6 +107,81 @@ static bool is_prime(num_type n) {
 	} else {
 		return is_big_odd_number_prime(n);
 	}
+}
+
+#ifndef NDEBUG
+num_type req_aliquot_sum_saved;
+
+static bool is_prime_without_primes(num_type n) {
+	if (!(n & 1)) return n == 2;
+	num_type n_sqrt = round_sqrt(n);
+	for (num_type p=3; p<=n_sqrt; p+=2) {
+		if (!(n % p)) return false;
+	}
+	return true;
+}
+
+static bool check_inverse_pow_list(prime_pow_struct prime_pow_list[], pow_idx_type pow_count) {
+	num_type prev_prime = 0;
+	for (pow_idx_type i=0; i<pow_count; ++i) {
+		num_type prime = prime_pow_list[i].prime;
+		if (prime_pow_list[i].exp == 0) return false;
+		if (prev_prime >= prime) return false;
+		if (!is_prime_without_primes(prime)) return false;
+		prev_prime = prime;
+	}
+	if (pow_count == 1 && prime_pow_list[0].exp < 2) return false;
+	return true;
+}
+
+static bool check_inverse_value(prime_pow_struct prime_pow_list[], pow_idx_type pow_count) {
+	num_type aliquot_sum;
+	if (pow_count > 1) {
+		num_type prefix_mul = 1, prefix_sigma = 1;
+		for (pow_idx_type i=0; i<pow_count-1; ++i) {
+			num_type prime = prime_pow_list[i].prime;
+			exp_type exp = prime_pow_list[i].exp;
+			assert(exp > 0);
+			num_type pow = calc_pow(prime, exp);
+			assert(prefix_mul <= NUM_TYPE_MAX / pow);
+			prefix_mul *= pow;
+			num_type pow_sigma = calc_pow_sigma(prime, exp);
+			assert(prefix_sigma <= NUM_TYPE_MAX / pow_sigma);
+			prefix_sigma *= pow_sigma;
+		}
+		num_type prime = prime_pow_list[pow_count-1].prime;
+		exp_type exp = prime_pow_list[pow_count-1].exp;
+		assert(exp > 0);
+		assert(prefix_sigma > prefix_mul);
+		num_type prefix_aliquot = prefix_sigma - prefix_mul;
+		num_type pow = calc_pow(prime, exp);
+		assert(prefix_aliquot <= NUM_TYPE_MAX / pow);
+		num_type summand1 = prefix_aliquot * pow;
+		num_type pow_aliquot = (exp > 1 ? calc_pow_sigma(prime, exp-1) : 1);
+		assert(prefix_sigma <= NUM_TYPE_MAX / pow_aliquot);
+		num_type summand2 = prefix_sigma * pow_aliquot;
+		assert(summand1 <= NUM_TYPE_MAX - summand2);
+		aliquot_sum = summand1 + summand2;
+	} else {
+		num_type prime = prime_pow_list[0].prime;
+		exp_type exp = prime_pow_list[0].exp;
+		assert(exp > 1);
+		aliquot_sum = calc_pow_sigma(prime, exp-1);
+	}
+	return aliquot_sum == req_aliquot_sum_saved;
+}
+
+#endif
+
+static bool aliquot_inverse_cb(calc_struct prime_calc_list[], pow_idx_type pow_count) {
+	static prime_pow_struct prime_pow_list[MAX_POW_COUNT];
+	for (pow_idx_type i=0; i<pow_count; ++i) {
+		prime_pow_list[i].prime = prime_calc_list[i].prime;
+		prime_pow_list[i].exp   = prime_calc_list[i].exp;
+	}
+	assert(check_inverse_pow_list(prime_pow_list, pow_count));
+	assert(check_inverse_value(prime_pow_list, pow_count));
+	return aliquot_inverse_external_cb(prime_pow_list, pow_count);
 }
 
 // --- find last prime --- {
@@ -629,6 +695,9 @@ void aliquot_inverse_run(num_type req_aliquot_sum) {
 		fprintf(stderr, "Input number is too large\n");
 		exit(EXIT_FAILURE);
 	}
+#ifndef NDEBUG
+	req_aliquot_sum_saved = req_aliquot_sum;
+#endif
 	exp_calc(req_aliquot_sum);
 }
 
