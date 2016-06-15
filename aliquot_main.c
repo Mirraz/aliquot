@@ -7,7 +7,10 @@
 void run_aliquot_sequence() {
 	num_type n;
 	int scanf_res = scanf(SCN_NUM_TYPE, &n);
-	assert(scanf_res == 1);
+	if (scanf_res != 1) {
+		fprintf(stderr, "Wrong input\n");
+		exit(EXIT_FAILURE);
+	}
 	printf(PRI_NUM_TYPE "\n", n);
 	
 	while (n != 1) {
@@ -17,7 +20,14 @@ void run_aliquot_sequence() {
 }
 
 void run_aliquot_sum_table() {
-	for (num_type n=2; n<=16777216; ++n) {
+	num_type num_last;
+	int scanf_res = scanf(SCN_NUM_TYPE, &num_last);
+	if (scanf_res != 1) {
+		fprintf(stderr, "Wrong input\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for (num_type n=2; n<=num_last; ++n) {
 		//printf(PRI_NUM_TYPE "\t", n);
 		printf(PRI_NUM_TYPE "\n", calc_aliquot_sum(n));
 	}
@@ -26,7 +36,10 @@ void run_aliquot_sum_table() {
 void run_aliquot_sum() {
 	num_type n;
 	int scanf_res = scanf(SCN_NUM_TYPE, &n);
-	assert(scanf_res == 1);
+	if (scanf_res != 1) {
+		fprintf(stderr, "Wrong input\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	printf(PRI_NUM_TYPE "\n", calc_aliquot_sum(n));
 }
@@ -47,4 +60,3 @@ int main(int argc, char *argv[]) {
 	run(argv[1]);
 	return 0;
 }
-
