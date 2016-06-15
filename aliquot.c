@@ -9,16 +9,10 @@
 #include "typedefs.h"
 #include "primes.h"
 
-// returns: base^exp + base^(exp-1) + ... + base + 1
+#include "pow.c"
+
 static num_type calc_pow_sigma(num_type base, exp_type exp) {
-	num_type result = 1;
-	for (exp_type i=0; i<exp; ++i) {
-		assert(result <= NUM_TYPE_MAX / base);
-		result *= base;
-		assert(result < NUM_TYPE_MAX);
-		++result;
-	}
-	return result;
+	return calc_pow_sigma_impl(base, exp);
 }
 
 static void factorize_cb(num_type prime, exp_type exp);

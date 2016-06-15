@@ -37,7 +37,7 @@ aliquot: $(BUILD_DIR)/aliquot_main.o $(BUILD_DIR)/aliquot.o $(BUILD_DIR)/primes.
 $(BUILD_DIR)/aliquot_main.o: $(SRC_DIR)/aliquot_main.c $(SRC_DIR)/aliquot.h $(SRC_DIR)/typedefs.h Makefile
 	$(CC) -o $@ $< -c $(CFLAGS)
 
-$(BUILD_DIR)/aliquot.o: $(SRC_DIR)/aliquot.c $(SRC_DIR)/primes.h $(SRC_DIR)/typedefs.h Makefile
+$(BUILD_DIR)/aliquot.o: $(SRC_DIR)/aliquot.c $(SRC_DIR)/pow.c $(SRC_DIR)/primes.h $(SRC_DIR)/typedefs.h Makefile
 	$(CC) -o $@ $< -c $(CFLAGS)
 
 
@@ -49,7 +49,7 @@ inverse: $(BUILD_DIR)/inverse_main.o $(BUILD_DIR)/inverse.o $(BUILD_DIR)/primes.
 $(BUILD_DIR)/inverse_main.o: $(SRC_DIR)/inverse_main.c $(SRC_DIR)/inverse.h $(SRC_DIR)/typedefs.h Makefile
 	$(CC) -o $@ $< -c $(CFLAGS)
 
-$(BUILD_DIR)/inverse.o: $(SRC_DIR)/inverse.c $(SRC_DIR)/inverse.h $(SRC_DIR)/primes.h $(SRC_DIR)/typedefs.h Makefile
+$(BUILD_DIR)/inverse.o: $(SRC_DIR)/inverse.c $(SRC_DIR)/pow.c $(SRC_DIR)/inverse.h $(SRC_DIR)/primes.h $(SRC_DIR)/typedefs.h Makefile
 	$(CC) -o $@ $< -c $(CFLAGS)
 
 $(BUILD_DIR)/primes.o: $(SRC_DIR)/primes.c $(SRC_DIR)/primes.h Makefile
