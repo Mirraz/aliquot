@@ -6,10 +6,8 @@
 #include <math.h>
 
 #include "aliquot.h"
+#include "typedefs.h"
 #include "primes.h"
-
-typedef uint_fast8_t exp_type;
-#define round_sqrt(n) round(sqrt((double)n))
 
 // returns: base^exp + base^(exp-1) + ... + base + 1
 static num_type calc_pow_sigma(num_type base, exp_type exp) {
@@ -97,4 +95,3 @@ void aliquot_init(const char *primes_filename) {
 void aliquot_terminate() {
 	primes_destruct(primes_array);
 }
-
