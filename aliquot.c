@@ -8,7 +8,6 @@
 #include "aliquot.h"
 #include "primes.h"
 
-#define NUM_TYPE_MAX UINT64_MAX
 typedef uint_fast8_t exp_type;
 #define round_sqrt(n) round(sqrt((double)n))
 

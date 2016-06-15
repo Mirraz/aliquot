@@ -5,6 +5,7 @@
 #include <inttypes.h>
 
 typedef uint_fast64_t num_type;
+#define NUM_TYPE_MAX UINT64_MAX
 #define PRI_NUM_TYPE "%" PRIuFAST64
 #define SCN_NUM_TYPE "%" SCNuFAST64
 
