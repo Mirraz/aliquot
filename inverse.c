@@ -612,7 +612,8 @@ primes_array_struct *primes_array;
 
 void aliquot_inverse_init(const char *primes_filename) {
 	assert(sizeof(first_primes)/sizeof(first_primes[0]) >= MAX_POW_COUNT);
-
+	
+	assert(sizeof(prime_type) <= sizeof(num_type));
 	primes_array = primes_construct(primes_filename);
 	primes = primes_get_array(primes_array);
 	primes_count = primes_get_count(primes_array);

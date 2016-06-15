@@ -88,6 +88,7 @@ num_type calc_aliquot_sum(num_type num) {
 primes_array_struct *primes_array;
 
 void aliquot_init(const char *primes_filename) {
+	assert(sizeof(prime_type) <= sizeof(num_type));
 	primes_array = primes_construct(primes_filename);
 	factorize_primes = primes_get_array(primes_array);
 	factorize_primes_count = primes_get_count(primes_array);
