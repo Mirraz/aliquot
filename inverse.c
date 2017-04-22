@@ -37,9 +37,10 @@ typedef struct {
 	bool is_prime_in_list;
 } calc_struct;
 
-const num_type first_primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53};
+const num_type first_primes[]    = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53};
+const prime_type min_prime_arr[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53};
 
-prime_type *primes;
+const prime_type *primes;
 size_t primes_count;
 num_type primes_max;
 
@@ -659,15 +660,16 @@ static void exp_calc(num_type req_aliquot_sum) {
 // --- main {
 
 int default_rounding_direction;
-primes_array_struct *primes_array;
+primearr_type primearr;
 
 void aliquot_inverse_init(const char *primes_filename) {
 	assert(sizeof(first_primes)/sizeof(first_primes[0]) >= MAX_POW_COUNT);
 	
 	assert(sizeof(prime_type) <= sizeof(num_type));
-	primes_array = primes_construct(primes_filename);
-	primes = primes_get_array(primes_array);
-	primes_count = primes_get_count(primes_array);
+	assert(sizeof(min_prime_arr)/sizeof(min_prime_arr[0]) >= MAX_POW_COUNT);
+	primearr_construct(&primearr, primes_filename, min_prime_arr, MAX_POW_COUNT);
+	primes = primearr_get_array(&primearr);
+	primes_count = primearr_get_size(&primearr);
 	assert(primes_count > 0);
 	primes_max = primes[primes_count-1];
 	
@@ -677,7 +679,7 @@ void aliquot_inverse_init(const char *primes_filename) {
 
 void aliquot_inverse_terminate() {
 	fesetround(default_rounding_direction);
-	primes_destruct(primes_array);
+	primearr_destruct(&primearr);
 }
 
 void aliquot_inverse_set_callback(aliquot_inverse_cb_type cb) {

@@ -3,16 +3,19 @@
 
 #include <stdint.h>
 #include <stddef.h>
-
-struct primes_array_struct_;
-typedef struct primes_array_struct_ primes_array_struct;
+#include <stdbool.h>
 
 typedef uint32_t prime_type;
+typedef struct {
+	const prime_type *array;
+	size_t size;
+	bool is_mmapped;
+} primearr_type;
 
-primes_array_struct *primes_construct(const char *primes_filename);
-void primes_destruct(primes_array_struct *primes_array);
-prime_type *primes_get_array(primes_array_struct *primes_array);
-size_t primes_get_count(primes_array_struct *primes_array);
+void primearr_construct(primearr_type *obj, const char *fpath, const prime_type *min_array, size_t min_size);
+void primearr_destruct(primearr_type *obj);
+const prime_type *primearr_get_array(const primearr_type *obj);
+size_t primearr_get_size(const primearr_type *obj);
 
 #endif/*PRIMES_H*/
 

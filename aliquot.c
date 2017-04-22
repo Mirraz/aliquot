@@ -17,7 +17,7 @@ static num_type calc_pow_sigma(num_type base, exp_type exp) {
 
 static void factorize_cb(num_type prime, exp_type exp);
 
-prime_type *factorize_primes;
+const prime_type *factorize_primes;
 size_t factorize_primes_count;
 
 static void factorize(num_type n) {
@@ -77,15 +77,15 @@ num_type calc_aliquot_sum(num_type num) {
 	return sigma - num;
 }
 
-primes_array_struct *primes_array;
+primearr_type primearr;
 
 void aliquot_init(const char *primes_filename) {
 	assert(sizeof(prime_type) <= sizeof(num_type));
-	primes_array = primes_construct(primes_filename);
-	factorize_primes = primes_get_array(primes_array);
-	factorize_primes_count = primes_get_count(primes_array);
+	primearr_construct(&primearr, primes_filename, NULL, 0);
+	factorize_primes = primearr_get_array(&primearr);
+	factorize_primes_count = primearr_get_size(&primearr);
 }
 
 void aliquot_terminate() {
-	primes_destruct(primes_array);
+	primearr_destruct(&primearr);
 }

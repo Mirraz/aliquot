@@ -38,11 +38,10 @@ void run(const char *primes_filename) {
 }
 
 int main(int argc, char *argv[]) {
-	if (argc != 2) {
-		fprintf(stderr, "Too few arguments\n");
+	if (argc > 2) {
+		fprintf(stderr, "Too many arguments\n");
 		exit(EXIT_FAILURE);
 	}
-	run(argv[1]);
+	run(argc > 1 ? argv[1] : NULL);
 	return 0;
 }
-
