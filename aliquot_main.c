@@ -40,7 +40,10 @@ void run_aliquot_sum() {
 		fprintf(stderr, "Wrong input\n");
 		exit(EXIT_FAILURE);
 	}
-	
+	if (!(n > 1)) {
+		fprintf(stderr, "Wrong input: " PRI_NUM_TYPE "\n", n);
+		exit(EXIT_FAILURE);
+	}
 	printf(PRI_NUM_TYPE "\n", calc_aliquot_sum(n));
 }
 
